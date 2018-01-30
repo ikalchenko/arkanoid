@@ -1,7 +1,66 @@
+@font-face {
+	font-family: "3d pixel font";
+	src: url("../fonts/3d-pixel-font.ttf");
+}
+
+@font-face {
+	font-family: Pixel;
+	src: url("../fonts/pixel.ttf");
+}
+
+@font-face {
+	font-family: "Pixel cursive";
+	src: url("../fonts/pixel-cursive.ttf");
+}
+
 body {
     margin: 0;
 }
+
 canvas {
     background: #eee; 
     display: block;
+}
+
+.menu {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: #eee;
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: -o-flex;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	align-items: center;
+	/*display: none;*/
+}
+
+.game-heading {
+	font-size: 144pt;
+	font-family: "3d pixel font";
+}
+
+.menu-button {
+	font-family: Pixel;
+	font-size: 40px;
+	border-radius: 10px;
+	background-color: #999;
+	padding: 20px;
+	-webkit-box-shadow: 10px 10px 0px -4px rgba(0,0,0,0.75);
+	-moz-box-shadow: 10px 10px 0px -4px rgba(0,0,0,0.75);
+	box-shadow: 10px 10px 0px -4px rgba(0,0,0,0.75);
+}
+
+.start-n-set {
+	width: 40%;
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: -o-flex;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
 }

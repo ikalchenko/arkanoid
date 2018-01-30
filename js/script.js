@@ -1,118 +1,91 @@
-let canvas = document.getElementById("cnvs");
-let ctx = canvas.getContext("2d");
+let canvas = document.getElementById('canvas'),
+	context = canvas.getContext('2d'),
+	fpsDisplay = document.getElementById('fpsDisplay');
 
-let ballRadius = 10;
-let x = canvas.width / 2;
-let y = canvas.height - 100;
-let dx = 2;
-let dy = -2;
-let interval = 1;
+let lastFrameTimeMs = 0,
+	delta = 0;
 
-let brickWidth = 100;
-let brickHeight = 20;
-let brickPadding = 2;
-let brickOffsetTop = 50;
-let brickOffsetLeft = 10;
-let brickRowCount = 2;//Math.round((canvas.height / 3) / (brickHeight + brickPadding));
-let brickColumnCount = Math.round(canvas.width / (brickWidth + brickPadding));
+let ballRadius = 10,
+	ballX = canvas.width / 2,
+	ballY = canvas.height / 2;
 
-//event LISTENERS
-
-window.addEventListener("resize", resizeCanvas());
-
-
-console.log(brickRowCount, brickColumnCount);
+let	dx = 3,
+	dy = 3;
+	
+const	gameDifficulty = ["easy", "normal", "hard", "impossible"],
+		colors = ["#0000ff", "#ff0000"],
+		bonuses = ["life", "slow-down", "extend", "stick"];
 
 let bricks = [];
-let colors = ["#0000ff", "#ff0000"];
-let bonuses = ["life", "slow-down", "extend", "stick"];
+let brickWidth,
+	brickHeight,
+	brickPadding = 2;
 
-function resizeCanvas() {
+window.addEventListener('load', fullWindowCanvas());
+
+function fullWindowCanvas() {
 	canvas.setAttribute("width", innerWidth);
 	canvas.setAttribute("height", innerHeight);
 }
 
-function Brick(brickX, brickY, color, hitsLeft) { //Brick object
+function Brick(brickX, brickY, color, hitsLeft) {
     this.brickX = brickX;
     this.brickY = brickY;
     this.color = color;
     this.hitsLeft = hitsLeft;
     this.haveBonus = Math.round(Math.random() * 100) < 10 ? bonuses[Math.round(Math.random() * 3)] : "none";
-    console.log(this.haveBonus);
 }
 
-function Player(lifes, complexity) {
+function Player(lifes, difficulty ) {
     this.lifes = lifes;
-	this.complexity = complexity;
+	this.difficulty  = difficulty ;
 	
 }
 
-for (r = 0; r < brickRowCount; r++) {
-    bricks[r] = [];
-    for (c = 0; c < brickColumnCount; c++) {
-        bricks[r].push(new Brick((c*(brickWidth + brickPadding)) + brickOffsetLeft,
-                                 (r*(brickHeight + brickPadding)) + brickOffsetTop,
-                                 (r == 0) ? colors[1] : colors[0],
-                                 (r == 0) ? 2 : 1));
-    }
-}
+// for (let r = 0; r < brickRowCount; r++) {
+//     bricks[r] = [];
+//     for (let c = 0; c < brickColumnCount; c++) {
+//         bricks[r].push(new Brick((c*(brickWidth + brickPadding)) + brickOffsetLeft,
+//                                  (r*(brickHeight + brickPadding)) + brickOffsetTop,
+//                                  (r == 0) ? colors[1] : colors[0],
+//                                  (r == 0) ? 2 : 1));
+//     }
+// }
 
-function drawBall() {
-    ctx.beginPath();
-    ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-    if(x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+function update(delta) {
+	if (delta > 1000) {
+		delta = 10;
+	}
+	delta /= 10;
+	if(ballX + dx * delta > canvas.width || ballX + dx * delta < ballRadius) {
         dx = -dx;
     }
-    if(y + dy > canvas.height - ballRadius || y + dy < ballRadius) {
+    if(ballY + dy * delta > canvas.height || ballY + dy * delta < ballRadius ) {
         dy = -dy;
     }
-    ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
-    ctx.fill();
-    ctx.closePath();
-    x += dx;
-    y += dy;
-}
-
-function drawBricks() {
-    for (r = 0; r < brickRowCount; r++) {
-		for (c = 0; c < brickColumnCount; c++) {
-            if (bricks[r][c].hitsLeft > 0) {
-                ctx.beginPath();
-                ctx.rect(bricks[r][c].brickX, bricks[r][c].brickY, brickWidth, brickHeight);
-                ctx.fillStyle = bricks[r][c].color;
-                ctx.fill();
-                ctx.closePath();
-            }
-        }
-	}
-}
-
-function collisionDetection() {
-    for (r = 0; r < brickRowCount; r++) {
-        for (c = 0; c < brickColumnCount; c++) {
-            let current = bricks[r][c];
-            if (current.hitsLeft > 0) {
-                if (x > current.brickX && x < current.brickX + brickWidth
-                 && y > current.brickY && y < current.brickY + brickHeight) {
-                    dy = -dy;
-                    current.hitsLeft--;
-                    if (current.hitsLeft == 1) {
-                        current.color = colors[0];
-                    }
-                    if (current.haveBonus != "none") {
-                        console.log('☻ ' + current.haveBonus);
-                    }
-                 }
-            }
-        }
-    }
+	ballX += dx * delta;
+    ballY += dy * delta;
 }
 
 function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBall(); 
-    drawBricks();
-    collisionDetection();
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	drawBall();
 }
 
-setInterval(render, interval);
+function drawBall() {
+	context.beginPath();
+    context.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+    
+    context.fillStyle = '#8080ff';
+    context.fill();
+    context.closePath();
+}
+
+function gameLoop(timestamp) {
+	delta = timestamp - lastFrameTimeMs;
+	lastFrameTimeMs = timestamp;
+	update(delta);
+	render();
+    requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
