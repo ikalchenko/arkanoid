@@ -1,16 +1,11 @@
 @font-face {
-	font-family: "3d pixel font";
-	src: url("../fonts/3d-pixel-font.ttf");
+	font-family: "3d pixel";
+	src: url("../fonts/3d-pixel.ttf");
 }
 
 @font-face {
 	font-family: Pixel;
 	src: url("../fonts/pixel.ttf");
-}
-
-@font-face {
-	font-family: "Pixel cursive";
-	src: url("../fonts/pixel-cursive.ttf");
 }
 
 body {
@@ -22,45 +17,95 @@ canvas {
     display: block;
 }
 
+.pixel-font {
+	font-family: Pixel;
+	font-size: 30px;
+}
 .menu {
 	position: absolute;
 	width: 100%;
 	height: 100%;
 	background-color: #eee;
-	display: -webkit-flex;
-	display: -moz-flex;
-	display: -ms-flex;
-	display: -o-flex;
+}
+
+.menu-items {
 	display: flex;
 	flex-direction: column;
-	justify-content: space-around;
+	justify-content: space-between;
 	align-items: center;
-	/*display: none;*/
 }
 
 .game-heading {
-	font-size: 144pt;
-	font-family: "3d pixel font";
+	font-size: 120pt;
+	font-family: "3d pixel";
+	line-height: 200px;
 }
 
 .menu-button {
-	font-family: Pixel;
-	font-size: 40px;
-	border-radius: 10px;
 	background-color: #999;
 	padding: 20px;
+	margin-top: 20px;
+	margin-bottom: 20px;
 	-webkit-box-shadow: 10px 10px 0px -4px rgba(0,0,0,0.75);
 	-moz-box-shadow: 10px 10px 0px -4px rgba(0,0,0,0.75);
 	box-shadow: 10px 10px 0px -4px rgba(0,0,0,0.75);
+	cursor: pointer;
 }
 
-.start-n-set {
-	width: 40%;
-	display: -webkit-flex;
-	display: -moz-flex;
-	display: -ms-flex;
-	display: -o-flex;
+#startButton {
+	transform: scale(1.2);
+}
+
+.menu-button:active {
+	-webkit-box-shadow: 10px 10px 0px -200px rgba(0,0,0,0.75);
+	-moz-box-shadow: 10px 10px 0px -200px rgba(0,0,0,0.75);
+	box-shadow: 10px 10px 0px -200px rgba(0,0,0,0.75);
+	background-color: #777;
+	margin-top: 25px;
+	margin-bottom: 15px;
+	margin-left: 5px;
+}
+
+.controls, .difficulty {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-around;
 }
+
+input[type="radio"] {
+	display: none;
+}
+
+.diff label, .control label {
+	display: block;
+	padding: 7px;
+	margin: 5px;
+	color: #555;
+	border: 5px solid #eee;
+}
+
+input[type="radio"]:checked + label {
+	border: 5px solid #000;
+	color: #000;
+}
+label:hover {
+	cursor: pointer;
+}
+
+.footer .menu-button {
+	transform: scale(0.8);
+	margin-bottom: 5px;
+	margin-right: 5px;
+}
+.footer .menu-button:active {
+	margin-bottom: 0px;
+	margin-right: 0px;
+}
+.footer {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+}
+
+

@@ -8,14 +8,51 @@
     <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 </head>
 <body>
-	<div class="menu">
-		<div class="game-heading">Arkanoid 3000</div>
-		<div class="start-n-set">
-			<div class="menu-button">Start game!</div>
-			<i class="menu-button fa fa-cogs"></i>
+	<div class="pixel-font menu">
+		<div class="menu-items">
+			<div class="game-heading">arkanoid 3000</div>
+			<div class="menu-item">
+				<div class="menu-button" id="startButton"><i class="fas fa-play"></i> start game</div>
+			</div>
+			<div class="settings menu-item">
+				<div class="label">choose control:</div>
+				<div class="controls">
+					<div class="control">
+						<input type="radio" name="control" id="controlKeyboardRadioButton" checked="checked">
+						<label for="controlKeyboardRadioButton">keyboard</label>
+					</div>
+					<div class="control">
+						<input type="radio" name="control" id="controlMouseRadioButton">
+						<label for="controlMouseRadioButton">mouse</label>
+					</div>
+				</div>
+				<div class="lable">choose difficulty:</div>
+				<div class="difficulty">
+					<div class="diff">
+						<input type="radio" name="diff" id="diffEasy" checked="checked">
+						<label for="diffEasy">easy</label>
+					</div>
+					<div class="diff">
+						<input type="radio" name="diff" id="diffNormal">
+						<label for="diffNormal">normal</label>
+					</div>
+					<div class="diff">
+						<input type="radio" name="diff" id="diffHard">
+						<label for="diffHard">hard</label>
+					</div>
+					<div class="diff">
+						<input type="radio" name="diff" id="diffImpossible">
+						<label for="diffImpossible">impossible</label>
+					</div>
+				</div>
+			</div>
+			<div class="footer">
+				<div class="menu-button" id="fullScreenButton"><i class="fas fa-expand-arrows-alt"></i></div>
+				<div class="menu-button" id="leaderboardButton"><i class="fas fa-list-ol"></i> leaderboard</div>
+				<div class="menu-button" id="infoButton"><i class="far fa-lightbulb"></i></div>
+			</div>
 		</div>
-		<div class="menu-button">Leaderboard</div>
-	</div>
+	</div>	
     <canvas id="canvas"></canvas>
     <script src="js/script.js"></script>
 </body>

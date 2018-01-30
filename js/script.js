@@ -1,6 +1,6 @@
 let canvas = document.getElementById('canvas'),
-	context = canvas.getContext('2d'),
-	fpsDisplay = document.getElementById('fpsDisplay');
+	context = canvas.getContext('2d');
+
 
 let lastFrameTimeMs = 0,
 	delta = 0;
@@ -11,7 +11,7 @@ let ballRadius = 10,
 
 let	dx = 3,
 	dy = 3;
-	
+
 const	gameDifficulty = ["easy", "normal", "hard", "impossible"],
 		colors = ["#0000ff", "#ff0000"],
 		bonuses = ["life", "slow-down", "extend", "stick"];
@@ -75,7 +75,6 @@ function render() {
 function drawBall() {
 	context.beginPath();
     context.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-    
     context.fillStyle = '#8080ff';
     context.fill();
     context.closePath();
