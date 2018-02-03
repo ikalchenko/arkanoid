@@ -8,9 +8,22 @@
     <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 </head>
 <body>
-	<div class="pixel-font menu">
+	<div id="blockWrapper"></div>
+	<div class="input-name pixel-font" id="nameForm">
+		<div>enter your name:</div>
+		<input type="text" id="userName" placeholder="ivan">
+		<div class="menu-button" id="submitNameButton">submit</div>
+	</div>
+	<div id="leaderboard">
+		
+	</div>
+	<div class="pixel-font menu" id="menu">
 		<div class="menu-items">
 			<div class="game-heading">ARKANOID 3000</div>
+			<div class="menu-item no-wrap">
+				<div>hello,&#160;</div>
+				<div id="greeting"></div>
+			</div>
 			<div class="menu-item">
 				<div class="menu-button" id="startButton"><i class="fas fa-play"></i> start game</div>
 			</div>
@@ -18,31 +31,31 @@
 				<div class="label">choose control:</div>
 				<div class="controls">
 					<div class="control">
-						<input type="radio" name="control" id="controlKeyboardRadioButton" checked="checked">
-						<label for="controlKeyboardRadioButton">keyboard</label>
+						<input type="radio" name="control" id="keyboard" value="keyboard" checked>
+						<label for="keyboard">keyboard</label>
 					</div>
 					<div class="control">
-						<input type="radio" name="control" id="controlMouseRadioButton">
-						<label for="controlMouseRadioButton">mouse</label>
+						<input type="radio" name="control" id="mouse" value="mouse">
+						<label for="mouse">mouse</label>
 					</div>
 				</div>
 				<div class="lable">choose difficulty:</div>
 				<div class="difficulty">
 					<div class="diff">
-						<input type="radio" name="diff" id="diffEasy" checked="checked">
-						<label for="diffEasy">easy</label>
+						<input type="radio" name="diff" id="easy" value="easy" checked>
+						<label for="easy">easy</label>
 					</div>
 					<div class="diff">
-						<input type="radio" name="diff" id="diffNormal">
-						<label for="diffNormal">normal</label>
+						<input type="radio" name="diff" id="normal" value="normal">
+						<label for="normal">normal</label>
 					</div>
 					<div class="diff">
-						<input type="radio" name="diff" id="diffHard">
-						<label for="diffHard">hard</label>
+						<input type="radio" name="diff" id="hard" value="hard">
+						<label for="hard">hard</label>
 					</div>
 					<div class="diff">
-						<input type="radio" name="diff" id="diffImpossible">
-						<label for="diffImpossible">impossible</label>
+						<input type="radio" name="diff" id="impossible" value="impossible">
+						<label for="impossible">impossible</label>
 					</div>
 				</div>
 			</div>
@@ -53,6 +66,15 @@
 			</div>
 		</div>
 	</div>	
+	<div class="pixel-font" id="gameInfo">
+		<div id="highscoreField"></div>
+		<div id="scoreField"></div>
+		<div class="lifes no-wrap">
+			<i class="fas fa-heart"></i>
+			<div>&#160;</div>
+			<div id="lifesField"></div>
+		</div>
+	</div>
     <canvas id="canvas"></canvas>
     <script src="js/script.js"></script>
 </body>
