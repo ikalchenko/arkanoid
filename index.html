@@ -4,28 +4,55 @@
     <meta charset="UTF-8">
     <meta  name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'/>
     <link rel="stylesheet" href="css/style.css">
-    <title>Arkanoid</title>
+    <link rel="icon" type="icon" href="img/favicon.ico" />
+    <title>Failoid</title>
     <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 </head>
 <body>
 	<div id="blockWrapper"></div>
-	<div class="input-name pixel-font" id="nameForm">
+	<div class="dialog-box pixel-font" id="nameForm">
 		<div>enter your name:</div>
 		<input type="text" id="userName" placeholder="ivan">
 		<div class="menu-button" id="submitNameButton">submit</div>
 	</div>
-	<div id="leaderboard">
-		
+	<div id="leaderboard" class="pixel-font dialog-box">leaderboard:
+		<div id="closeLeaderboardButton">x</div>
+	</div>
+	<div id="winBox" class="pixel-font dialog-box">you win!1!!
+		<div class="winScore">with score:&#160;<div id="winScoreField">0</div></div>
+		<div class="winLevel">and complete&#160;<div id="winLevelField">1</div><div>levels.</div></div>
+		<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
+	</div>
+	<div id="loseBox" class="pixel-font dialog-box">you lose((99(
+		<div class="loseScoreField">with score:&#160;<div id="loseScoreField"></div></div>
+		<div class="loseLevelField">at level:&#160;<div id="loseLevelField"></div></div>
+		<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
+	</div>
+	<div id="nextLevelBox" class="pixel-font dialog-box">you complete&#160;<div class="completeLevelField">1</div>
+		<div class="completeLevelScore">with score:&#160;<div id="completeLevelScoreField"></div></div>
+		<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
+	</div>
+	<div id="info" class="pixel-font dialog-box">info:
+		<div id="closeInfoButton">x</div>
+		<div class="centered-text">made with <i class="fas fa-heart"></i> & <i class="fas fa-coffee"></i> in kharkiv, ukraine, by <a href="https://github.com/ikalchenko/"><i class="fab fa-github"></i>ikalchenko</a></div>
 	</div>
 	<div class="pixel-font menu" id="menu">
 		<div class="menu-items">
-			<div class="game-heading">ARKANOID 3000</div>
+			<div class="game-heading">FAILOID</div>
 			<div class="menu-item no-wrap">
 				<div>hello,&#160;</div>
-				<div id="greeting"></div>
+				<div id="greeting"></div>&#160;
+				<div id="removeUser"><i class="fas fa-trash"></i></div>&#160;
+				<div id="changeUser"><i  class="cursor fas fa-sync"></i></div>
 			</div>
-			<div class="menu-item">
+				<div class="menu-item">
 				<div class="menu-button" id="startButton"><i class="fas fa-play"></i> start game</div>
+			</div>
+			<div class="infinity-mode">infinity mode: 
+					<input type="radio" name="infinityMode" id="infinityModeOn" value="infinityOn">
+					<label for="infinityModeOn">on</label>
+					<input type="radio" name="infinityMode" id="infinityModeOff" value="infinityOff" checked>
+					<label for="infinityModeOff">off</label>
 			</div>
 			<div class="settings menu-item">
 				<div class="label">choose control:</div>

@@ -14,6 +14,7 @@
 
 body {
     margin: 0;
+	background-color: #eee;
 }
 
 canvas {
@@ -44,7 +45,7 @@ canvas {
 	height: 100%
 }
 
-.input-name {
+.dialog-box {
 	position: absolute;
 	background-color: #eee;
 	width: 50%;
@@ -62,6 +63,26 @@ canvas {
 	justify-content: space-around;
 	align-items: center;
 }
+.dialog-box a {
+	text-decoration: none;
+	color: #777
+}
+#winBox, #leaderboard, #info, #loseBox, #nextLevelBox {
+	display: none;
+}
+
+#closeLeaderboardButton, #closeInfoButton, #closeWinBoxButton {
+	position: absolute;
+	right: 20px;
+	top: 15px;
+	font-size: 40px;
+	cursor: pointer;
+}
+
+.centered-text {
+	width:80%;
+	text-align: center;
+}
 
 #blockWrapper {
 	display: block;
@@ -73,8 +94,21 @@ canvas {
 	opacity: 0.7;
 }
 
-.input-name .menu-button {
+.dialog-box .menu-button {
 	transform: scale(0.8);
+}
+
+.winScoreField {
+	display: flex;
+	width: 100%;
+	justify-content: center;
+}
+
+.menu-buttons {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	width: 100%;
 }
 
 #userName {
@@ -89,9 +123,18 @@ canvas {
 	border: 5px solid #000;
 }
 .game-heading {
-	font-size: 120pt;
+	font-size: 100pt;
 	font-family: "3d pixel";
-
+}
+.infinity-mode {
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: -o-flex;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
 }
 
 #gameInfo{
@@ -102,7 +145,7 @@ canvas {
 	display: -moz-flex;
 	display: -ms-flex;
 	display: -o-flex;
-	display: flex;
+	display: none;
 	z-index: 10;
 	-webkit-flex-direction: row;
 	-moz-flex-direction: row;
@@ -164,7 +207,7 @@ canvas {
 
 }
 
-.controls, .difficulty {
+.controls, .difficulty, .infinity-mode {
 	display: -webkit-flex;
 	display: -moz-flex;
 	display: -ms-flex;
@@ -174,24 +217,34 @@ canvas {
 	justify-content: space-around;
 }
 
+
 input[type="radio"] {
 	display: none;
 }
+input[type="checkbox"] {
+	display: none;
+}
 
-.diff label, .control label {
+.diff label, .control label, .infinity-mode label {
 	display: block;
 	padding: 7px;
 	margin: 5px;
 	color: #555;
 	border: 5px solid #eee;
+	cursor: pointer;
 }
 
 input[type="radio"]:checked + label {
 	border: 5px solid #000;
 	color: #000;
 }
+input[type="checkbox"]:checked + label {
+	border: 5px solid #000;
+	color: #000;
+}
+
 label:hover {
-	cursor: pointer;
+	
 }
 
 .footer .menu-button {
@@ -200,8 +253,8 @@ label:hover {
 	margin-right: 5px;
 }
 .footer .menu-button:active {
-	margin-bottom: 0px;
-	margin-right: 0px;
+	margin-bottom: 0;
+	margin-right: 0;
 }
 .footer {
 	width: 100%;
@@ -212,6 +265,10 @@ label:hover {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-around;
+}
+
+.cursor {
+	cursor: pointer;
 }
 
 

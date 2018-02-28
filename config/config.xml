@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<config>
+	<difficulties>
+		<difficalty level="easy">
+			<ballDx>1.0</ballDx>
+			<ballDy>1.0</ballDy>
+			<brickRowCount>4</brickRowCount>
+			<brickColumnCount>8</brickColumnCount>
+			<bonusesEnabled>true</bonusesEnabled>
+			<moreBonuses>true</moreBonuses>
+			<lifes>5</lifes>
+			<platformWidth>0.15</platformWidth>
+			<platformStep>7</platformStep>
+		</difficalty>
+		<difficalty level="normal">
+			<ballDx>1.2</ballDx>
+			<ballDy>1.2</ballDy>
+			<brickRowCount>5</brickRowCount>
+			<brickColumnCount>10</brickColumnCount>
+			<bonusesEnabled>true</bonusesEnabled>
+			<moreBonuses>true</moreBonuses>
+			<lifes>3</lifes>
+			<platformWidth>0.15</platformWidth>
+			<platformStep>7</platformStep>
+		</difficalty>
+		<difficalty level="hard">
+			<ballDx>1.5</ballDx>
+			<ballDy>1.5</ballDy>
+			<brickRowCount>5</brickRowCount>
+			<brickColumnCount>10</brickColumnCount>
+			<bonusesEnabled>true</bonusesEnabled>
+			<moreBonuses>false</moreBonuses>
+			<lifes>2</lifes>
+			<platformWidth>0.1</platformWidth>
+			<platformStep>9</platformStep>
+		</difficalty>
+		<difficalty level="impossible">
+			<ballDx>2.0</ballDx>
+			<ballDy>2.0</ballDy>
+			<brickRowCount>6</brickRowCount>
+			<brickColumnCount>12</brickColumnCount>
+			<bonusesEnabled>false</bonusesEnabled>
+			<moreBonuses>false</moreBonuses>
+			<lifes>1</lifes>
+			<platformWidth>0.08</platformWidth>
+			<platformStep>10</platformStep>
+		</difficalty>
+	</difficulties>
+	
+</config>
