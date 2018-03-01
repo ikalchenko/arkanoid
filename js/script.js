@@ -9,7 +9,7 @@ let canvas = document.getElementById('canvas'),
 	controlRadio = document.getElementsByName('control'),
 	submitNameButton = document.getElementById('submitNameButton'),
 	userNameInput = document.getElementById('userName'),
-	gameInfo = document.getElementById('gameInfo');
+	gameInfo = document.getElementById('gameInfo'),
 	highscoreField = document.getElementById('highscoreField'),
 	currentBrickScoreField = document.getElementById('scoreField'),
 	lifesField = document.getElementById('lifesField'),
@@ -23,12 +23,13 @@ let canvas = document.getElementById('canvas'),
 	infinityModeRadio = document.getElementsByName('infinityMode'),
 	changeUserButton = document.getElementById('changeUser'),
 	winBox = document.getElementById('winBox'),
+    loseBox = document.getElementById('loseBox'),
+	loseScoreField = document.getElementById('loseScoreField'),
 	winScoreField = document.getElementById('winScoreField'),
-	closeWinBoxButton = document.getElementById('closeWinBoxButton');
+    removeUserButton = document.getElementById('removeUser');
 
 	//TODO
 	//при выпадении двух бонусво подряд цвет присваивается одинаковый????
-	//переписать циклы обновления кирпичей в бесконечном режиме без внутренних цыклов
 
 let lastFrameTimeMs = 0,
 	timeDelta = 0,
@@ -43,7 +44,8 @@ let fullScreenEnabled = false,
 	moreBonuses = false,
 	bonusesEnabled = false,
 	collision = false,
-	lose = false;
+	lose = false,
+	ballLost = false;
 
 let addedRow = false;
 
@@ -65,7 +67,7 @@ let bricks = [],
 	brickColumnCount,
 	brickWidth,
 	brickHeight,
-	brickPadding = 2,
+	brickMargin = 2,
 	brickMarginTop = Math.round(window.innerHeight * 0.1);
 
 let platformWidth,
@@ -99,13 +101,9 @@ let bonusDx = delta,
 	bricksInRowDestroyed = [0, 0, 0, 0, 0, 0];
 
 class Brick {
-	constructor(x, y, hitsLeft, row, column, onceHitted) {
-	    this.x = x;
-	    this.y = y;
+	constructor(hitsLeft, onceHitted) {
 	    this.hitsLeft = hitsLeft;
 	    this.color = hitsLeft === 2 ? brickColors[1] : brickColors[0];
-	    this.row = row;
-	    this.column = column;
 	    this.haveBonus = bonusesEnabled ? (moreBonuses ? (Math.round(Math.random() * 100) < 30 ? bonusTypes[Math.round(Math.random() * 5)] : 'none') 
 	    								: (Math.round(Math.random() * 100) < 10 ? bonusTypes[Math.round(Math.random() * 5)] : 'none')) : 'none';
 	    this.point = hitsLeft * 10;
@@ -132,6 +130,12 @@ class Bonus {
 	}	
 }
 
+class Ball {
+	constructor() {
+
+	}
+}
+
 submitNameButton.addEventListener('click', checkCookies);
 changeUserButton.addEventListener('click', changeUser);
 startButton.addEventListener('click', onStartGame);
@@ -142,7 +146,10 @@ closeInfoButton.addEventListener('click', hideBox);
 closeLeaderboardButton.addEventListener('click', hideBox);
 infoButton.addEventListener('click', showInfoBox);
 leaderboardButton.addEventListener('click', showLeaderboardBox);
-closeWinBoxButton.addEventListener('click', hideBox);
+window.onresize = function () {
+	console.log("resized");
+}
+removeUserButton.addEventListener('click', removeUser);
 
 
 function checkCookies() {}
@@ -232,14 +239,17 @@ function onStartGame() {
 }
 
 function onLose() {
-	
+    blockWrapper.style.display = 'block';
+    loseBox.style.display = 'flex';
+    loseScoreField.innerHTML = score;
+    cancelAnimationFrame(reqAnimFrame);
 }
 
 function onWin() {
 	blockWrapper.style.display = 'block';
 	winBox.style.display = 'flex';
 	winScoreField.innerHTML = score;
-	cancleAnimationFrame(reqAnimFrame);
+    cancelAnimationFrame(reqAnimFrame);
 	
 }
 
@@ -247,12 +257,7 @@ function firstRoundBricksCompute() {
 	for (let r = 0; r < brickRowCount; r++) {
 	    bricks[r] = [];
 	    for (let c = 0; c < brickColumnCount; c++) {
-	        bricks[r].push(new Brick(c * (brickWidth + brickPadding),
-	                                 r * (brickHeight + brickPadding) + brickMarginTop,
-	                                 r == 0 ? 2 : 1,
-	                                 r,
-	                                 c,
-	                                 false));
+	        bricks[r].push(new Brick(r === 0 ? 2 : 1, false));
    		}
 	}
 }
@@ -261,12 +266,7 @@ function infinityModeBricksCompute () {
 	for (let r = 0; r < brickRowCount; r++) {
 	    bricks[r] = [];
 	    for (let c = 0; c < brickColumnCount; c++) {
-	        bricks[r].push(new Brick(c * (brickWidth + brickPadding),
-	                                 r * (brickHeight + brickPadding) + brickMarginTop,
-	                                 (Math.random() * 100 < 30) ? 2 : 1,
-	                                 r,
-	                                 c, 
-	                                 false));
+	        bricks[r].push(new Brick((Math.random() * 100 < 30) ? 2 : 1, false));
    		}
 	}
 }
@@ -281,7 +281,7 @@ function computeBricks() {
 
 function updateBricksInfinityMode() {
 
-	for(let r = 0; r < brickRowCount; r++) {
+	for (let r = 0; r < brickRowCount; r++) {
         for (let c = 0; c < brickColumnCount; c++) {
             if (bricks[r][c].hitsLeft === 0 && bricks[r][c].onceHitted === true) {
                 bricksInRowDestroyed[r]++;
@@ -290,7 +290,6 @@ function updateBricksInfinityMode() {
             if (bricksInRowDestroyed[r] === brickColumnCount && addedRow === false) {
                 bricks.unshift(getRandomBrickRow());
                 addedRow = true;
-
             }
         }
     }
@@ -299,26 +298,22 @@ function updateBricksInfinityMode() {
 function changeUser() {
 	nameForm.style.display = 'flex';
 	blockWrapper.style.display = 'block';
+    greeting.innerHTML = 'smb else';
+}
+
+function removeUser() {
+    nameForm.style.display = 'flex';
+    blockWrapper.style.display = 'block';
+    greeting.innerHTML = 'smb else';
+
 }
 
 function getRandomBrickRow() {
 	let arr = [];
     for (let i = 0; i < brickColumnCount; i++) {
-    	arr.push(new Brick(i * (brickWidth + brickPadding),
-                        brickMarginTop,
-                        (Math.random() * 100 < 30) ? 2 : 1,
-                        0,
-                        i,
-                        false));
+    	arr.push(new Brick((Math.random() * 100 < 30) ? 2 : 1, false));
     }
     return arr;
-}
-
-function shiftBricks() {
-	for (let i = 0; i < brickRowCount; i++) {
-
-
-	}
 }
 
 function hideBox() {
@@ -358,6 +353,7 @@ function keyReleasedHandler(btn) {
 		leftPressed = false;
 	} else if (btn.keyCode === 32 && checkedControl === 'keyboard') {
 		startBall = true;
+        ballLost = false;
 	}
 }
 
@@ -366,7 +362,7 @@ function mouseMoveHandler(event) {
 	if (cursorX > platformWidth / 2 && cursorX < window.innerWidth - platformWidth / 2) {
 		platformX = cursorX - platformWidth / 2;
 		if (checkedControl === 'mouse') {
-			canvas.addEventListener('click', function () {startBall = true;});
+			canvas.addEventListener('click', function () {startBall = true; ballLost = false;});
 		}
 	}
 	if (!startBall){
@@ -380,14 +376,14 @@ function collisionDetection() {
         for (c = 0; c < brickColumnCount; c++) {
             let currentBrick = bricks[r][c];
             if (currentBrick.hitsLeft > 0){
-            	if (ballY + ballRadius > currentBrick.y && ballY - ballRadius < currentBrick.y + brickHeight) {
-            		if (ballX + ballRadius > currentBrick.x && ballX - ballRadius < currentBrick.x + brickWidth) {
+            	if (ballY + ballRadius > r * brickHeight + brickMarginTop && ballY - ballRadius < r * brickHeight + brickMarginTop + brickHeight) {
+            		if (ballX + ballRadius > c * brickWidth && ballX - ballRadius < c * brickWidth + brickWidth) {
             			ballDy =  -ballDy;
             			currentBrick.hitsLeft--;
             			if (currentBrick.haveBonus !== 'none' && currentBrick.hitsLeft === 0) {
             				bonuses.push(new Bonus(currentBrick.haveBonus,
-            				 						currentBrick.x + brickWidth * 0.125 * 3,
-            				  						currentBrick.y + brickHeight,
+            				 						c * brickWidth + brickWidth * 0.125 * 3,
+            				  						r * brickHeight + brickMarginTop + brickHeight,
             				  						true,
             				  						false));
 						}
@@ -396,13 +392,13 @@ function collisionDetection() {
 						if (currentBrick.hitsLeft === 1) {
 							currentBrick.color = brickColors[0];
 						}
-					} else if (ballX + ballRadius > currentBrick.x && ballX - ballRadius < currentBrick.x + brickWidth) {
+					} else if (ballX + ballRadius > c * brickWidth && ballX - ballRadius < c * brickWidth + brickWidth) {
 						ballDx =  -ballDx;
 						currentBrick.hitsLeft--;
 						if (currentBrick.haveBonus !== 'none' && currentBrick.hitsLeft === 0) {
 							bonuses.push(new Bonus(currentBrick.haveBonus,
-            				 						currentBrick.x + brickWidth,
-            				  						currentBrick.y + brickWidth * 0.125 * 3,
+            				 						c * brickWidth + brickWidth,
+            				  						r * brickHeight + brickMarginTop + brickWidth * 0.125 * 3,
 							  						true,
 													false));
 						}
@@ -433,7 +429,7 @@ function computeScore() {
 function bonusHandler() {
 	for (let current in bonuses) {
 		if (bonuses[current].active) {
-			switch (bonus.type) {
+			switch (bonuses[current].type) {
 				case 'addLife':
 					lifes++;
 					break;
@@ -507,6 +503,25 @@ function gameInfoUpdate() {
 	lifesField.innerHTML ='x ' + lifes;
 }
 
+function lostBallHandler(timeDelta) {
+    if (timeDelta > 1000) {
+        timeDelta = 10;
+    }
+    timeDelta /= 10;
+    if(ballY + ballDy * timeDelta > window.innerHeight - ballRadius || ballY + ballDy * timeDelta < 0 ) {
+		startBall = false;
+		lifes--;
+		ballLost = true;
+    }
+}
+
+function loseHandler() {
+	if (lifes <= 0) {
+		onLose();
+	}
+
+}
+
 function bonusProgressBarUpdate(timeDelta) { 
 	progressBarX -= progressBarBonusStep * timeDelta;
 }
@@ -577,8 +592,6 @@ function trackControls() {
     }
 }
 
-function updateBrickRowCount() {}
-
 function isBricksVisible() {
 	for (let r = 0; r < brickRowCount; r++){
 		for (let c = 0; c < brickColumnCount; c++) {
@@ -600,8 +613,9 @@ function moveBall(timeDelta) {
 		if(ballX + ballDx * timeDelta > window.innerWidth - ballRadius || ballX + ballDx * timeDelta < ballRadius) {
 	        ballDx = -ballDx;
 	    }
-	    if(ballY + ballDy * timeDelta > window.innerHeight - ballRadius || ballY + ballDy * timeDelta < ballRadius ) {
+	    if(ballY + ballDy * timeDelta > window.innerHeight - ballRadius || ballY + ballDy * timeDelta < ballRadius) {
 	        ballDy = -ballDy;
+
 	    }
 		ballX += ballDx * timeDelta;
 	    ballY += ballDy * timeDelta;
@@ -625,12 +639,12 @@ function drawPlatform() {
 }
 
 function drawBricks() {
-    for (r = 0; r < brickRowCount; r++) {
-		for (c = 0; c < brickColumnCount; c++) {
+    for (let r = 0; r < brickRowCount; r++) {
+		for (let c = 0; c < brickColumnCount; c++) {
 			let currentBrick = bricks[r][c];
             if (currentBrick.hitsLeft > 0) {
                 context.beginPath();
-                context.rect(currentBrick.x, currentBrick.y, brickWidth, brickHeight);
+                context.rect(c * brickWidth, r * brickHeight + brickMarginTop, brickWidth - brickMargin, brickHeight - brickMargin);
                 context.fillStyle = currentBrick.color;
                 context.fill();
                 context.closePath(); 
@@ -646,6 +660,11 @@ function update(timeDelta) {
 	collisionDetection();
 	platformReflexionHandler();
 	computeScore();
+    catchBonusHandler();
+    if (!(ballLost)) {
+        lostBallHandler(timeDelta);
+    }
+    loseHandler();
 	if(!(isBricksVisible())) {
 		onWin();
 	}
@@ -656,7 +675,7 @@ function update(timeDelta) {
 	updateBonusFall(timeDelta);
 	gameInfoUpdate();
 	moveBall(timeDelta);
-	bonusHandler();
+	//bonusHandler();
 }
 
 function render() {
@@ -674,3 +693,5 @@ function gameLoop(timestamp) {
 	render();
     requestAnimationFrame(gameLoop);
 }
+
+
