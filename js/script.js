@@ -1,697 +1,585 @@
-let canvas = document.getElementById('canvas'),
-	context = canvas.getContext('2d'),
-	startButton = document.getElementById('startButton'),
-	menu = document.getElementById('menu'),
-	fullScreenButton = document.getElementById('fullScreenButton'),
-	leaderboardButton = document.getElementById('leaderboardButton'),
-	infoButton = document.getElementById('infoButton'),
-	difficultyRadio = document.getElementsByName('diff'),
-	controlRadio = document.getElementsByName('control'),
-	submitNameButton = document.getElementById('submitNameButton'),
-	userNameInput = document.getElementById('userName'),
-	gameInfo = document.getElementById('gameInfo'),
-	highscoreField = document.getElementById('highscoreField'),
-	currentBrickScoreField = document.getElementById('scoreField'),
-	lifesField = document.getElementById('lifesField'),
-	nameForm = document.getElementById('nameForm'),
-	blockWrapper = document.getElementById('blockWrapper'),
-	greeting = document.getElementById('greeting'),
-	closeLeaderboardButton = document.getElementById('closeLeaderboardButton'),
-	closeInfoButton = document.getElementById('closeInfoButton'),
-	infoBox = document.getElementById('info'),
-	leaderboardBox = document.getElementById('leaderboard'),
-	infinityModeRadio = document.getElementsByName('infinityMode'),
-	changeUserButton = document.getElementById('changeUser'),
-	winBox = document.getElementById('winBox'),
-    loseBox = document.getElementById('loseBox'),
-	loseScoreField = document.getElementById('loseScoreField'),
-	winScoreField = document.getElementById('winScoreField'),
-    removeUserButton = document.getElementById('removeUser');
-
-	//TODO
-	//при выпадении двух бонусво подряд цвет присваивается одинаковый????
-
-let lastFrameTimeMs = 0,
-	timeDelta = 0,
-	delta = Math.round(((innerWidth + innerHeight) / 2) * 0.03);
-	delta = Math.round(((innerWidth + innerHeight) / 2) * 0.008);
-
-let fullScreenEnabled = false,
-	checkedDifficulty,
-	checkedControl,
-	startBall = false,
-	ballOnPlatform = true,
-	moreBonuses = false,
-	bonusesEnabled = false,
-	collision = false,
-	lose = false,
-	ballLost = false;
-
-let addedRow = false;
-
-let reqAnimFrame;
-
-let ballRadius = ((innerWidth + innerHeight) / 2) * 0.01,
-	ballX,
-	ballY,
-	ballDx = delta,
-	ballDy = -delta;
-
-const	brickColors = ['blue', 'red'],
-		bonusTypes = ['addLife', 'slowDownBall', 'expandPlatform', 'stickBall', 'doubleScore'],
-		bonusColors = ['red', 'violet', 'blue', 'orange', 'green'];
-
-let bricks = [],
-	bonuses = [],
-	brickRowCount,
-	brickColumnCount,
-	brickWidth,
-	brickHeight,
-	brickMargin = 2,
-	brickMarginTop = Math.round(window.innerHeight * 0.1);
-
-let platformWidth,
-	platformHeight,
-	platformX,
-	platformY = window.innerHeight * 0.9,
-	platformStep,
-	platformPart;
-
-let rightPressed = false,
-	leftPressed = false;
-
-
-let player,
-	userName;
-
-let progressBarBonusHeight = 5,
-	progressBarBonusWidth = window.innerWidth,
-	progressBarX = 0,
-	progressBarY = 0,
-	progressBarBonusStep = 0.1;
-
-let bonusDx = delta,
-	bonusDy = delta,
-	bonusWidth,
-	bonusHeight,
-	lifes,
-	score = 0,
-	tempHighscore = 0,
-	infinityMode = false,
-	bricksInRowDestroyed = [0, 0, 0, 0, 0, 0];
-
-class Brick {
-	constructor(hitsLeft, onceHitted) {
-	    this.hitsLeft = hitsLeft;
-	    this.color = hitsLeft === 2 ? brickColors[1] : brickColors[0];
-	    this.haveBonus = bonusesEnabled ? (moreBonuses ? (Math.round(Math.random() * 100) < 30 ? bonusTypes[Math.round(Math.random() * 5)] : 'none') 
-	    								: (Math.round(Math.random() * 100) < 10 ? bonusTypes[Math.round(Math.random() * 5)] : 'none')) : 'none';
-	    this.point = hitsLeft * 10;
-	    this.onceHitted = onceHitted;
-	}
-}
-
 class Player {
-	constructor(name, highscore, availableLevel) {
-		this.name = name;
-		this.highscore = highscore;
-		this.availableLevel = availableLevel;
-	}
+    constructor() {
+        this.name = 'smb';
+        this.life = 1;
+        if (this.checkCookies()) {
+            this.checkLocalStorage();
+        } else {
+            this.savePlayer();
+        }
+    }
+
+    checkCookies() {
+        return true;
+    }
+
+    checkLocalStorage() {
+
+    }
+
+    savePlayer() {
+
+    }
+
+    updateCookies() {
+
+    }
+
+    submitName() {
+
+        if (ui.userNameInput.value === '') {
+            this.name = 'smb who h8s 2 enter a names';
+        } else {
+            this.name = ui.userNameInput.value;
+        }
+        ui.greeting.innerText = this.name;
+    }
 }
 
-class Bonus {
-	constructor(type, x, y, knockedOut, active) {
-		this.type = type;
-		this.x = x;
-		this.y = y;
-		this.knockedOut = knockedOut;
-		this.active = active;
-		this.color = setBonusColor(this);
-	}	
-}
+class Config {
+    constructor() {
+        this.level = 1;
+    }
 
-class Ball {
-	constructor() {
+    readPlayerConfig() {
+        this.infinity = document.querySelector('input[name=infinity]:checked').value === 'infinityOn';
+        this.control = document.querySelector('input[name=control]:checked').value;
+        this.difficulty = document.querySelector('input[name=difficulty]:checked').value;
+    }
 
-	}
-}
+    setXMLConfig(player, ball, platform) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'config/config.xml', false);
+        xhr.send();
+        let xml = xhr.responseXML;
+        let configNodes = xml.children[0].children[0].children;
+        for (let node of configNodes) {
+            if (node.getAttribute('level') === this.difficulty) {
+                ball.dx *= node.querySelector('ballDx').innerHTML;
+                ball.dy *= node.querySelector('ballDy').innerHTML;
+                this.brickRows = node.querySelector('brickRows').innerHTML;
+                this.brickColumns = node.querySelector('brickColumns').innerHTML;
+                this.bonusesEnabled = node.querySelector('bonusesEnabled').innerHTML;
+                this.moreBonuses = node.querySelector('moreBonuses').innerHTML;
+                player.life = node.querySelector('life').innerHTML;
+                Platform.width *= node.querySelector('platformWidth').innerHTML;
+                platform.step = node.querySelector('platformStep').innerHTML;
+                break;
 
-submitNameButton.addEventListener('click', checkCookies);
-changeUserButton.addEventListener('click', changeUser);
-startButton.addEventListener('click', onStartGame);
-document.addEventListener('keydown', keyPressedHandler);
-document.addEventListener('keyup', keyReleasedHandler);
-submitNameButton.addEventListener('click', onNameSubmit);
-closeInfoButton.addEventListener('click', hideBox);
-closeLeaderboardButton.addEventListener('click', hideBox);
-infoButton.addEventListener('click', showInfoBox);
-leaderboardButton.addEventListener('click', showLeaderboardBox);
-window.onresize = function () {
-	console.log("resized");
-}
-removeUserButton.addEventListener('click', removeUser);
-
-
-function checkCookies() {}
-
-function setBonusColor(bonus) {
-	switch(bonus.type){
-		case 'addLife':
-			return bonusColors[0];
-		case 'slowDownBall':
-			return bonusColors[1];
-		case 'expandPlatform':
-			return bonusColors[2];
-		case 'stickBall':
-			return bonusColors[3];
-		case 'doubleScore':
-				return bonusColors[4];
-	}
-}
-
-function onNameSubmit() {
-	nameForm.style.display = 'none';
-	blockWrapper.style.display = 'none';
-	userName = userNameInput.value.length == 0 ? 'smb who h8s 2 enter a names' : userNameInput.value;
-	greeting.innerHTML = userName; 
-}
-
-function onStartGame() {
-	fullWindowCanvas();
-	player = new Player('smb', 577, 1);
-	menu.style.display = 'none';
-	checkedDifficulty = document.querySelector('input[name=diff]:checked').value;
-	checkedControl = document.querySelector('input[name=control]:checked').value;
-	infinityMode = document.querySelector('input[name=infinityMode]:checked').value == 'infinityOn' ? true : false;
-	switch (checkedDifficulty) {
-		case 'easy':
-			brickRowCount = 4;
-			brickColumnCount = 8;
-			moreBonuses = true;
-			bonusesEnabled = true;
-			lifes = 5;
-			platformWidth = Math.round(window.innerWidth * 0.15);
-			platformStep = 7;
-			break;
-		case 'normal':
-			ballDx *= 1.2;
-			ballDy *= 1.2;
-			brickRowCount = 5;
-			brickColumnCount = 10;
-			moreBonuses = true;
-			bonusesEnabled = true;
-			lifes = 3;
-			platformWidth = Math.round(window.innerWidth * 0.15);
-			platformStep = 7;
-			break;
-		case 'hard':
-			ballDx *= 1.5;
-			ballDy *= 1.5;
-			brickRowCount = 5;
-			brickColumnCount = 10;
-			moreBonuses = false;
-			bonusesEnabled = true;
-			lifes = 2;
-			platformWidth = Math.round(window.innerWidth * 0.1);
-			platformStep = 9;
-			break;
-		case 'impossible':
-			ballDx *= 2;
-			ballDy *= 2;
-			brickRowCount = 6;
-			brickColumnCount = 12;
-			moreBonuses = false;
-			bonusesEnabled = false;
-			lifes = 1;
-			platformWidth = Math.round(window.innerWidth * 0.08);
-			platformStep = 10;
-			break;
-	}
-	platformHeight = Math.round(window.innerHeight * 0.03);
-	brickWidth = Math.round(window.innerWidth / brickColumnCount);
-	brickHeight = Math.round((window.innerHeight / brickRowCount) / 5);
-	platformX = (window.innerWidth - platformWidth) / 2;
-	bonusWidth = brickWidth / 4;
-	bonusHeight = brickHeight / 2;
-	gameInfo.style.display = 'flex';
-	computeBricks();
-	reqAnimFrame = requestAnimationFrame(gameLoop);
-}
-
-function onLose() {
-    blockWrapper.style.display = 'block';
-    loseBox.style.display = 'flex';
-    loseScoreField.innerHTML = score;
-    cancelAnimationFrame(reqAnimFrame);
-}
-
-function onWin() {
-	blockWrapper.style.display = 'block';
-	winBox.style.display = 'flex';
-	winScoreField.innerHTML = score;
-    cancelAnimationFrame(reqAnimFrame);
-	
-}
-
-function firstRoundBricksCompute() {
-	for (let r = 0; r < brickRowCount; r++) {
-	    bricks[r] = [];
-	    for (let c = 0; c < brickColumnCount; c++) {
-	        bricks[r].push(new Brick(r === 0 ? 2 : 1, false));
-   		}
-	}
-}
-
-function infinityModeBricksCompute () {
-	for (let r = 0; r < brickRowCount; r++) {
-	    bricks[r] = [];
-	    for (let c = 0; c < brickColumnCount; c++) {
-	        bricks[r].push(new Brick((Math.random() * 100 < 30) ? 2 : 1, false));
-   		}
-	}
-}
-
-function computeBricks() {
-	if (infinityMode){
-		infinityModeBricksCompute();
-	} else {
-		firstRoundBricksCompute();
-	}
-}
-
-function updateBricksInfinityMode() {
-
-	for (let r = 0; r < brickRowCount; r++) {
-        for (let c = 0; c < brickColumnCount; c++) {
-            if (bricks[r][c].hitsLeft === 0 && bricks[r][c].onceHitted === true) {
-                bricksInRowDestroyed[r]++;
-                bricks[r][c].onceHitted = false;
-            }
-            if (bricksInRowDestroyed[r] === brickColumnCount && addedRow === false) {
-                bricks.unshift(getRandomBrickRow());
-                addedRow = true;
             }
         }
     }
 }
 
-function changeUser() {
-	nameForm.style.display = 'flex';
-	blockWrapper.style.display = 'block';
-    greeting.innerHTML = 'smb else';
-}
-
-function removeUser() {
-    nameForm.style.display = 'flex';
-    blockWrapper.style.display = 'block';
-    greeting.innerHTML = 'smb else';
-
-}
-
-function getRandomBrickRow() {
-	let arr = [];
-    for (let i = 0; i < brickColumnCount; i++) {
-    	arr.push(new Brick((Math.random() * 100 < 30) ? 2 : 1, false));
+//smth like interface, just for inheritance
+class Drawable {
+    constructor(x, y, dx, dy, color) {
+        this.x = x;
+        this.y = y;
+        this.dx = dx;
+        this.dy = dy;
+        this.color = color;
     }
-    return arr;
+
+    draw() {
+    }
+
+    update() {
+    }
 }
 
-function hideBox() {
-	blockWrapper.style.display = 'none';
-	infoBox.style.display = 'none';
-	leaderboardBox.style.display = 'none';
-	winBox.style.display = 'none';
-}
+class Brick extends Drawable {
+    constructor(x, y, row, column, hitsLeft) {
+        super(x, y);
+        Brick.color = {
+            ONE_HIT: '#0f0',
+            TWO_HITS: '#00f',
+            THREE_HITS: '#f00'
+        };
+        this.row = row;
+        this.column = column;
+        this.hitsLeft = hitsLeft;//game.config.infinity ? ((Math.random() * 100 < 30) ? 2 : 1) : (this.row === 0 ? 2 : 1);
+        this.haveBonus = game.config.bonusesEnabled ? (game.config.moreBonuses ? (Math.round(Math.random() * 100) < 30 ? Bonus.getRandomBonusType() : 'none')
+            : (Math.round(Math.random() * 100) < 10 ? Bonus.getRandomBonusType() : 'none')) : 'none';
+        this.color = this.setBrickColor();
+    }
 
-function showInfoBox() {
-	blockWrapper.style.display = 'block';
-	infoBox.style.display = 'flex';
-}
+    draw() {
+        if (this.hitsLeft > 0) {
+            ui.context.beginPath();
+            ui.context.rect(this.x, this.y, Brick.width, Brick.height);
+            ui.context.fillStyle = this.color;
+            ui.context.fill();
+            ui.context.closePath();
+        }
+    }
 
-function showLeaderboardBox() {
-	blockWrapper.style.display = 'block';
-	leaderboardBox.style.display = 'flex';
-}
+    update() {
 
-function fullWindowCanvas() {
-	canvas.setAttribute('width', window.innerWidth);
-	canvas.setAttribute('height', window.innerHeight);
-}
+    }
 
-function keyPressedHandler(btn) {
-	if(btn.keyCode === 39) {
-		rightPressed = true;
-	} else if (btn.keyCode === 37) {
-		leftPressed = true;
-	}
-}
 
-function keyReleasedHandler(btn) {
-	if(btn.keyCode === 39) {
-		rightPressed = false;
-	} else if (btn.keyCode === 37) {
-		leftPressed = false;
-	} else if (btn.keyCode === 32 && checkedControl === 'keyboard') {
-		startBall = true;
-        ballLost = false;
-	}
-}
+    setBrickColor() {
+        switch (this.hitsLeft) {
+            case 1:
+                return Brick.color.ONE_HIT;
+            case 2:
+                return Brick.color.TWO_HITS;
+            case 3:
+                return Brick.color.THREE_HITS;
+        }
+    }
 
-function mouseMoveHandler(event) {
-	let cursorX = event.clientX;
-	if (cursorX > platformWidth / 2 && cursorX < window.innerWidth - platformWidth / 2) {
-		platformX = cursorX - platformWidth / 2;
-		if (checkedControl === 'mouse') {
-			canvas.addEventListener('click', function () {startBall = true; ballLost = false;});
-		}
-	}
-	if (!startBall){
-		ballX = platformX + platformWidth / 2;
-		ballY = platformY - ballRadius;
-	}
-}
-
-function collisionDetection() {
-    for (r = 0; r < brickRowCount; r++) {
-        for (c = 0; c < brickColumnCount; c++) {
-            let currentBrick = bricks[r][c];
-            if (currentBrick.hitsLeft > 0){
-            	if (ballY + ballRadius > r * brickHeight + brickMarginTop && ballY - ballRadius < r * brickHeight + brickMarginTop + brickHeight) {
-            		if (ballX + ballRadius > c * brickWidth && ballX - ballRadius < c * brickWidth + brickWidth) {
-            			ballDy =  -ballDy;
-            			currentBrick.hitsLeft--;
-            			if (currentBrick.haveBonus !== 'none' && currentBrick.hitsLeft === 0) {
-            				bonuses.push(new Bonus(currentBrick.haveBonus,
-            				 						c * brickWidth + brickWidth * 0.125 * 3,
-            				  						r * brickHeight + brickMarginTop + brickHeight,
-            				  						true,
-            				  						false));
-						}
-						collission = true;
-						currentBrick.onceHitted = true;
-						if (currentBrick.hitsLeft === 1) {
-							currentBrick.color = brickColors[0];
-						}
-					} else if (ballX + ballRadius > c * brickWidth && ballX - ballRadius < c * brickWidth + brickWidth) {
-						ballDx =  -ballDx;
-						currentBrick.hitsLeft--;
-						if (currentBrick.haveBonus !== 'none' && currentBrick.hitsLeft === 0) {
-							bonuses.push(new Bonus(currentBrick.haveBonus,
-            				 						c * brickWidth + brickWidth,
-            				  						r * brickHeight + brickMarginTop + brickWidth * 0.125 * 3,
-							  						true,
-													false));
-						}
-						collission = true;
-						if (currentBrick.hitsLeft === 1) {
-							currentBrick.color = brickColors[0];
-						}
-					}
-            	}
+    static createBricks(rows, columns, level, infinityMode) {
+        let bricks = [];
+        for (let r = 0; r < rows; r++) {
+            bricks[r] = [];
+            for (let c = 0; c < columns; c++) {
+                if (infinityMode){
+                    bricks[r].push(new Brick(c * (Brick.width + Brick.margin),
+                                            r * (Brick.height + Brick.margin) + Brick.topMargin,
+                                            r,
+                                            c,
+                                            (Math.random() * 100 < 30) ? ((Math.random() * 100 < 30) ? 3 : 2) : 1));
+                } else {
+                    if (level === 1) {
+                        bricks[r].push(new Brick(c * (Brick.width + Brick.margin),
+                                                r * (Brick.height + Brick.margin) + Brick.topMargin,
+                                                r,
+                                                c,
+                                                r < 2 ? (r === 0 ? 3 : 2) : 1));
+                    }
+                }
             }
+        }
+        return bricks;
+    }
+}
+
+class Bonus extends Drawable {
+    constructor() {
+        super();
+        Bonus.type = {
+            AL: 'addLife',
+            SDB: 'slowDownBall',
+            EP: 'expandPlatform',
+            SB: 'stickBall',
+            DS: 'doubleScore'
+        };
+        Bonus.color = {
+            ADD_LIFE: '#dc143c',
+            SLOW_DOWN_BALL: '#f40',
+            EXPAND_PLATFORM: '#2120ff',
+            STICK_BALL: '#8a2be2',
+            DOUBLE_SCORE: '#00ff47'
+        };
+    }
+
+    static getRandomBonusType() {
+        let rand = Math.round(Math.random() * 4);
+        switch (rand) {
+            case 0:
+                return Bonus.type.AL;
+            case 1:
+                return Bonus.type.DS;
+            case 2:
+                return Bonus.type.EP;
+            case 3:
+                return Bonus.type.SB;
+            case 4:
+                return Bonus.type.SDB;
+        }
+    }
+
+    draw() {
+
+    }
+
+    update() {
+
+    }
+}
+
+class Platform extends Drawable {
+    constructor(x, y, color) {
+        super(x, y, 0, 0, color);
+        Platform.width = window.innerWidth;
+        Platform.height = Math.round(window.innerHeight * 0.03);
+        this.step = 7;
+    }
+
+    draw() {
+        ui.context.beginPath();
+        ui.context.rect(this.x, this.y, Platform.width, Platform.height);
+        ui.context.fillStyle = this.color;
+        ui.context.fill();
+        ui.context.closePath();
+
+    }
+
+    update(x, y) {
+        if (ui.leftPressed) {
+            if (this.x - this.step < 0) {
+                this.x = 0;
+            } else {
+                this.x -= this.step;
+            }
+        }
+        if (ui.rightPressed) {
+            if (this.x + Platform.width + this.step >= window.innerWidth) {
+                this.x = Math.round(window.innerWidth - Platform.width) + 1;
+            } else {
+                this.x += Number(this.step);
+            }
+
+        }
+        if (x > Platform.width / 2 && x < window.innerWidth - Platform.width / 2) {
+            this.x = x - Platform.width / 2;
+        }
+        //console.log('x: ' + this.x + ' step: ' + this.step + ' typeof x: ' + typeof this.x);
+    }
+}
+
+class Ball extends Drawable {
+    constructor(x, y, radius, delta, color) {
+        super(x, y, delta, -delta, color === undefined ? Ball.getRandomColor() : color);
+        this.radius = radius;
+        this.onPlatform = false;
+    }
+
+    draw() {
+        ui.context.beginPath();
+        ui.context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ui.context.fillStyle = this.color;
+        ui.context.fill();
+        ui.context.closePath();
+    }
+
+    update(delta) {
+        if (this.onPlatform) {
+            this.x = game.platform.x + Platform.width / 2;
+            this.y = game.platform.y - this.radius;
+        } else {
+            let platformPart = Platform.width / 7;
+            if (this.y + this.radius > game.platform.y && this.y - this.radius < game.platform.y + Platform.height) {
+                if (this.x < game.platform.x + Platform.width && this.x > game.platform.x) {
+                    this.dy = -this.dy;
+                    switch (true) {
+                        case this.x > game.platform.x && this.x < game.platform.x + platformPart:
+                            this.dx = -delta * 1.5;
+                            break;
+                        case this.x > game.platform.x + platformPart && this.x < game.platform.x + platformPart * 2:
+                            this.dx = -delta;
+                            break;
+                        case this.x > game.platform.x + platformPart * 2 && this.x < game.platform.x + platformPart * 3:
+                            this.dx = -delta * 0.5;
+                            break;
+                        case this.x > game.platform.x + platformPart * 3 && this.x < game.platform.x + platformPart * 4:
+                            this.dx = 0;
+                            break;
+                        case this.x > game.platform.x + platformPart * 4 && this.x < game.platform.x + platformPart * 5:
+                            this.dx = delta * 0.5;
+                            break;
+                        case this.x > game.platform.x + platformPart * 5 && this.x < game.platform.x + platformPart * 6:
+                            this.dx = delta;
+                            break;
+                        case this.x > game.platform.x + platformPart * 6 && this.x < game.platform.x + platformPart * 7:
+                            this.dx = delta * 1.5;
+                            break;
+                    }
+
+                } else if (this.x + this.radius > game.platform.x && this.x - this.radius < game.platform.x + Platform.width) {
+                    this.dx = -this.dx;
+                }
+            }
+            if (this.x + this.dx * delta > window.innerWidth - this.radius || this.x + this.dx * delta < this.radius) {
+                this.dx = -this.dx;
+            }
+            if (this.y > window.innerHeight + 50 || this.y < this.radius) {
+                this.dy = -this.dy;
+
+            }
+            this.x += this.dx * delta;
+            this.y += this.dy * delta; // change to +=
+
+        }
+
+    }
+
+    static getRandomColor() {
+        let signs = '0123456789abcdef';
+        let color = '#';
+        let signIndex;
+        for (let i = 0; i < 6; i++) {
+            while (signIndex === undefined) {
+                signIndex = Math.round(Math.random() * 15);
+            }
+            color += signs[signIndex];
+            signIndex = undefined;
+        }
+        return color;
+    }
+}
+
+class ProgressBar extends Drawable {
+    constructor() {
+        super();
+    }
+
+    draw() {
+
+    }
+
+    update() {
+
+    }
+}
+
+class Game {
+    constructor(name, version) {
+        this.name = name;
+        this.version = version;
+        this.player = new Player();
+        this.timeDelta = Math.round(((innerWidth + innerHeight) / 2) * 0.003);
+        this.lastFrameTime = 10;
+        this.config = new Config();
+        this.platform = new Platform(window.innerWidth / 2, window.innerHeight - 50, '#0aae0d', this.config.step);
+        this.ball = new Ball(500, 500, 10, this.timeDelta);
+        new Bonus(); //temporary
+    }
+
+    setup() {
+        this.config.readPlayerConfig();
+        this.config.setXMLConfig(this.player, this.ball, this.platform);
+    }
+
+    start() {
+        this.bricks = Brick.createBricks(this.config.brickRows, this.config.brickColumns, this.config.level, this.config.infinity);
+        requestAnimationFrame((timestamp) => this.loop(timestamp));
+    }
+
+    stop() {
+
+    }
+
+    pause() {
+
+    }
+
+    resume() {
+
+    }
+
+    collisionDetection() {
+        for (let r = 0; r < this.config.brickRows; r++) {
+            for (let c = 0; c < this.config.brickColumns; c++) {
+                let currentBrick = this.bricks[r][c];
+                if (currentBrick.hitsLeft > 0) {
+                    if (game.ball.y + game.ball.radius > currentBrick.y && game.ball.y - game.ball.radius < currentBrick.y + Brick.height) {
+                        if (game.ball.x + game.ball.radius > currentBrick.x && game.ball.x + game.ball.radius < currentBrick.x + Brick.width) {
+                            game.ball.dy = -game.ball.dy;
+                            currentBrick.hitsLeft--;
+                            if (currentBrick.hitsLeft === 1) {
+                                currentBrick.color = Brick.color.ONE_HIT;
+                            }
+                            if (currentBrick.hitsLeft === 2) {
+                                currentBrick.color = Brick.color.TWO_HITS;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    update(delta) {
+        this.ball.update(delta);
+        this.platform.update();
+        this.collisionDetection()
+        ui.updateGameStat();
+    }
+
+    render() {
+        ui.context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        this.ball.draw();
+        for (let brickRow of this.bricks) {
+            for (let brick of brickRow) {
+                brick.draw();
+            }
+        }
+        this.platform.draw();
+    }
+
+    loop(timestamp) {
+        this.timeDelta = timestamp - this.lastFrameTime;
+        this.lastFrameTime = timestamp;
+        if (this.timeDelta > 1000) {
+            this.timeDelta = 10;
+        }
+        this.timeDelta /= 10;
+        this.update(this.timeDelta);
+        this.render();
+        requestAnimationFrame((timestamp) => this.loop(timestamp));
+    }
+}
+
+class UI {
+    constructor() {
+        this.canvas = document.getElementById("canvas");
+        this.context = this.canvas.getContext('2d');
+        this.startGameBtn = document.getElementById('startGameButton');
+        this.menu = document.getElementById('menu');
+        this.fullScreenButton = document.getElementById('fullScreenButton');
+        this.leaderboardButton = document.getElementById('leaderboardButton');
+        this.infoButton = document.getElementById('infoButton');
+        this.infoBox = document.getElementById('infoBox');
+        this.leaderboardBox = document.getElementById('leaderboardBox');
+        this.submitNameButton = document.getElementById('submitNameButton');
+        this.userNameInput = document.getElementById('userName');
+        this.gameStat = document.getElementById('gameStat');
+        this.nameForm = document.getElementById('nameForm');
+        this.boxWrapper = document.getElementById('boxWrapper');
+        this.greeting = document.getElementById('greeting');
+        this.highscoreField = document.getElementById('highscoreField');
+        this.scoreField = document.getElementById('scoreField');
+        this.lifeField = document.getElementById('lifeField');
+        this.gameNameField = document.getElementById('gameName');
+        this.gameVersionField = document.getElementById('gameVersion');
+        this.closeLeaderboardButton = document.getElementById('closeLeaderboardButton');
+        this.closeInfoButton = document.getElementById('closeInfoButton');
+        this.removeUserButton = document.getElementById('removeUserButton');
+        this.changeUserButton = document.getElementById('changeUserButton');
+        this.rightPressed = false;
+        this.leftPressed = false;
+        this.gameNameField.innerHTML = game.name;
+        this.gameVersionField.innerHTML = 'v.' + game.version;
+    }
+
+    static switchFullScreen() {
+        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement) {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+            ui.fullScreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+        } else {
+            if (document.cancelFullScreen) {
+                document.cancelFullScreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitCancelFullScreen) {
+                document.webkitCancelFullScreen();
+            }
+            ui.fullScreenButton.innerHTML = '<i class="fas fa-expand"></i>';
+        }
+
+    }
+
+    showGameStat() {
+        this.gameStat.style.display = 'flex';
+    }
+
+    updateGameStat() {
+        this.highscoreField.innerText = 'highscore: ' + game.player.highscore;
+        this.scoreField.innerText = 'score: ' + game.player.score;
+        this.lifeField.innerText = 'x ' + game.player.life;
+    }
+
+    adapt() {
+        Brick.width = Math.round(window.innerWidth / game.config.brickColumns);
+        Brick.height = Math.round((window.innerWidth / game.config.brickRows) / 10);
+        Brick.topMargin = Math.round(window.innerHeight * 0.1);
+        Brick.margin = 2;
+        ui.canvas.setAttribute('width', window.innerWidth);
+        ui.canvas.setAttribute('height', window.innerHeight);
+    }
+
+    controlHandler(event) {
+        if (this.menu.style.display === 'none') {
+            if (game.config.control === 'mouse' && event !== undefined) {
+                game.platform.update(Math.round(event.clientX));
+            } else if (game.config.control === 'keyboard' && event !== undefined) {
+                if (event.type === 'keydown' && event.keyCode === 39) {
+                    this.rightPressed = true;
+                }
+                if (event.type === 'keydown' && event.keyCode === 37) {
+                    this.leftPressed = true;
+                }
+                if (event.type === 'keyup' && event.keyCode === 39) {
+                    this.rightPressed = false;
+                }
+                if (event.type === 'keyup' && event.keyCode === 37) {
+                    this.leftPressed = false;
+                }
+            }
+        }
+    }
+
+    showBox(invoker) {
+        if (invoker === this.infoButton) {
+            this.boxWrapper.style.display = 'block';
+            this.infoBox.style.display = 'flex';
+        }
+        if (invoker === this.leaderboardButton) {
+            this.boxWrapper.style.display = 'block';
+            this.leaderboardBox.style.display = 'flex';
+        }
+        if (invoker === this.removeUserButton) {
+            ui.userNameInput.value = '';
+            this.boxWrapper.style.display = 'block';
+            this.nameForm.style.display = 'flex';
+            //removing player
+        }
+        if (invoker === this.changeUserButton) {
+            //save last user to local storage
+            ui.userNameInput.value = '';
+            this.boxWrapper.style.display = 'block';
+            this.nameForm.style.display = 'flex';
+        }
+    }
+
+    start() {
+        UI.hideBoxes(this.menu);
+        this.showGameStat();
+        game.setup();
+        if (game.config.control === 'mouse') {
+            this.canvas.style.cursor = 'none';
+        }
+        this.adapt();
+        game.start();
+    }
+
+    submitName() {
+        game.player.submitName();
+        UI.hideBoxes(this.boxWrapper, this.nameForm);
+    }
+
+    static hideBoxes() {
+        for (let i in arguments) {
+            arguments[i].style.display = 'none';
         }
     }
 }
 
-function computeScore() {
-	for (r = 0; r < brickRowCount; r++) {
-        for (c = 0; c < brickColumnCount; c++) {
-        	let currentBrick = bricks[r][c];
-        	if (currentBrick.hitsLeft === 0 && collission === true) {
-                score += currentBrick.point;
-                collission = false;
-        		console.log(score);
-            }
-        }
-    }
-}
-
-function bonusHandler() {
-	for (let current in bonuses) {
-		if (bonuses[current].active) {
-			switch (bonuses[current].type) {
-				case 'addLife':
-					lifes++;
-					break;
-				case 'slowDownBall':
-					ballDx *= 0.5;
-					ballDy *= 0.5;
-					break;
-				case 'expandPlatform':
-					platformWidth *= 1.5;
-					break;
-				case 'stickBall':
-					startBall = false;
-					break;
-				case 'doubleScore':
-					score *= 2;
-					break;
-			}
-		}
-	}
-}
-
-function clearBonuses() {
-	for (let current in bonuses) {
-		if (bonuses[current].y > window.innerHeight) {
-			bonuses.splice(current, 1);
-		}
-	}
-}
-
-function updateBonusFall(timeDelta) {
-	if (timeDelta > 1000) {
-		timeDelta = 10;
-	}
-	timeDelta /= 10;
-	for (let current in bonuses) {
-		if (bonuses[current].knockedOut) {
-			bonuses[current].y += bonusDy * timeDelta;
-		}
-	}
-}
-
-function drawBonusFall() {
-	context.beginPath();
-	for (let current in bonuses) {
-		if (bonuses[current].knockedOut) {
-			context.rect(bonuses[current].x, bonuses[current].y, bonusWidth, bonusHeight);
-			context.fillStyle = bonuses[current].color;
-		}
-	}
-	context.fill();
-	context.closePath();
-}
-
-function drawBonusProgressBar() {
-	context.beginPath();
-	context.rect(progressBarX, progressBarY, progressBarBonusWidth, progressBarBonusHeight)
-	context.fillStyle = '#ff0000';
-	context.fill();
-	context.closePath();
-}
-
-function gameInfoUpdate() {
-	if (player.highscore < score) {
-		player.highscore = score;
-	}
-	if (tempHighscore < score) {
-		tempHighscore = score;
-	}
-	highscoreField.innerHTML = 'highscore: ' + player.highscore;
-	currentBrickScoreField.innerHTML = 'score: ' + score;
-	lifesField.innerHTML ='x ' + lifes;
-}
-
-function lostBallHandler(timeDelta) {
-    if (timeDelta > 1000) {
-        timeDelta = 10;
-    }
-    timeDelta /= 10;
-    if(ballY + ballDy * timeDelta > window.innerHeight - ballRadius || ballY + ballDy * timeDelta < 0 ) {
-		startBall = false;
-		lifes--;
-		ballLost = true;
-    }
-}
-
-function loseHandler() {
-	if (lifes <= 0) {
-		onLose();
-	}
-
-}
-
-function bonusProgressBarUpdate(timeDelta) { 
-	progressBarX -= progressBarBonusStep * timeDelta;
-}
-
-function catchBonusHandler() {
-	for (let current in bonuses) {
-		if (bonuses[current].x < platformX + platformWidth && bonuses[current].x > platformX) {
-			if (bonuses[current].y > platformY  && bonuses[current].y < platformY + platformHeight)
-				bonuses[current].active = true;
-		}
-	}
-}
-
-function platformReflexionHandler() {
-	platformPart = platformWidth / 7;
-	if (ballY + ballRadius > platformY && ballY - ballRadius < platformY + platformHeight) {
-		if (ballX < platformX + platformWidth && ballX > platformX) {
-			ballDy = -ballDy;
-			switch (true) {
-				case ballX > platformX && ballX < platformX + platformPart:
-					ballDx = -delta * 1.5;
-					break;
-				case ballX > platformX + platformPart && ballX < platformX + platformPart * 2:
-					ballDx = -delta;
-					break;
-				case ballX > platformX + platformPart * 2 && ballX < platformX + platformPart * 3:
-					ballDx = -delta * 0.5;
-					break;
-				case ballX > platformX + platformPart * 3 && ballX < platformX + platformPart * 4:
-					ballDx = 0;
-					break;
-				case ballX > platformX + platformPart * 4 && ballX < platformX + platformPart * 5:
-					ballDx = delta * 0.5;
-					break;
-				case ballX > platformX + platformPart * 5 && ballX < platformX + platformPart * 6:
-					ballDx = delta;
-					break;
-				case ballX > platformX + platformPart * 6 && ballX < platformX + platformPart * 7:
-					ballDx = delta * 1.5;
-					break;
-			}
-			
-		} else if (ballX + ballRadius > platformX && ballX - ballRadius < platformX + platformWidth) {
-			ballDx = -ballDx;
-		}
-	}
-}
-
-function trackControls() {
-	if (checkedControl === 'keyboard') {
-		if (rightPressed) {
-			platformX += platformStep;
-		} else if (leftPressed) {
-			platformX -= platformStep;
-		}
-		if (!startBall){
-			ballX = platformX + platformWidth / 2;
-			ballY = platformY - ballRadius;
-		}
-	} else if (checkedControl === 'mouse'){
-		document.addEventListener('mousemove', mouseMoveHandler);
-		canvas.style.cursor = 'none';
-	}
-	if (platformX > window.innerWidth - platformWidth) {
-    	platformX = window.innerWidth - platformWidth;
-    } else if (platformX < 0) {
-    	platformX = 0;
-    }
-}
-
-function isBricksVisible() {
-	for (let r = 0; r < brickRowCount; r++){
-		for (let c = 0; c < brickColumnCount; c++) {
-			let currentBrick = bricks[r][c];
-			if (currentBrick.hitsLeft !== 0) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-function moveBall(timeDelta) {
-	if (timeDelta > 1000) {
-		timeDelta = 10;
-	}
-	timeDelta /= 10;
-	if (startBall) {
-		if(ballX + ballDx * timeDelta > window.innerWidth - ballRadius || ballX + ballDx * timeDelta < ballRadius) {
-	        ballDx = -ballDx;
-	    }
-	    if(ballY + ballDy * timeDelta > window.innerHeight - ballRadius || ballY + ballDy * timeDelta < ballRadius) {
-	        ballDy = -ballDy;
-
-	    }
-		ballX += ballDx * timeDelta;
-	    ballY += ballDy * timeDelta;
-	}
-}
-
-function drawBall() {
-	context.beginPath();
-    context.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-    context.fillStyle = '#8058ff';
-    context.fill();
-    context.closePath();
-}
-
-function drawPlatform() {
-	context.beginPath();
-	context.rect(platformX, platformY, platformWidth, platformHeight);
-	context.fillStyle = '#aaa';
-	context.fill();
-	context.closePath(); 
-}
-
-function drawBricks() {
-    for (let r = 0; r < brickRowCount; r++) {
-		for (let c = 0; c < brickColumnCount; c++) {
-			let currentBrick = bricks[r][c];
-            if (currentBrick.hitsLeft > 0) {
-                context.beginPath();
-                context.rect(c * brickWidth, r * brickHeight + brickMarginTop, brickWidth - brickMargin, brickHeight - brickMargin);
-                context.fillStyle = currentBrick.color;
-                context.fill();
-                context.closePath(); 
-            }
-        }
-	}
-}
-
-function updateCookies() {}
-
-function update(timeDelta) {
-	trackControls();
-	collisionDetection();
-	platformReflexionHandler();
-	computeScore();
-    catchBonusHandler();
-    if (!(ballLost)) {
-        lostBallHandler(timeDelta);
-    }
-    loseHandler();
-	if(!(isBricksVisible())) {
-		onWin();
-	}
-	clearBonuses();
-	if (infinityMode) {
-		updateBricksInfinityMode();
-	}
-	updateBonusFall(timeDelta);
-	gameInfoUpdate();
-	moveBall(timeDelta);
-	//bonusHandler();
-}
-
-function render() {
-	context.clearRect(0, 0, window.innerWidth, window.innerHeight);
-	drawBricks();
-	drawPlatform();
-	drawBall();
-	drawBonusFall();
-}
-
-function gameLoop(timestamp) {
-	timeDelta = timestamp - lastFrameTimeMs;
-	lastFrameTimeMs = timestamp;
-	update(timeDelta);
-	render();
-    requestAnimationFrame(gameLoop);
-}
+let game = new Game('FAILOID', '0.3.2');
+let ui = new UI();
 
 
+window.onresize = () => ui.adapt();
+ui.submitNameButton.addEventListener('click', () => ui.submitName());
+ui.startGameBtn.addEventListener('click', () => ui.start());
+ui.leaderboardButton.addEventListener('click', () => ui.showBox(ui.leaderboardButton));
+ui.infoButton.addEventListener('click', () => ui.showBox(ui.infoButton));
+ui.fullScreenButton.addEventListener('click', UI.switchFullScreen);
+ui.canvas.addEventListener('click', () => x);
+ui.closeLeaderboardButton.addEventListener('click', () => UI.hideBoxes(ui.boxWrapper, ui.leaderboardBox));
+ui.closeInfoButton.addEventListener('click', () => UI.hideBoxes(ui.boxWrapper, ui.infoBox));
+ui.removeUserButton.addEventListener('click', () => ui.showBox(ui.removeUserButton));
+ui.changeUserButton.addEventListener('click', () => ui.showBox(ui.changeUserButton));
+document.addEventListener('mousemove', (event) => ui.controlHandler(event));
+document.addEventListener('keydown', (event) => ui.controlHandler(event));
+document.addEventListener('keyup', (event) => ui.controlHandler(event));
+document.addEventListener('keypress', (event) => ui.controlHandler(event));

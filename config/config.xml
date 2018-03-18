@@ -1,50 +1,49 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <config>
 	<difficulties>
-		<difficalty level="easy">
+		<difficulty level="easy">
 			<ballDx>1.0</ballDx>
 			<ballDy>1.0</ballDy>
-			<brickRowCount>4</brickRowCount>
-			<brickColumnCount>8</brickColumnCount>
+			<brickRows>4</brickRows>
+			<brickColumns>8</brickColumns>
 			<bonusesEnabled>true</bonusesEnabled>
 			<moreBonuses>true</moreBonuses>
-			<lifes>5</lifes>
+			<life>5</life>
 			<platformWidth>0.15</platformWidth>
 			<platformStep>7</platformStep>
-		</difficalty>
-		<difficalty level="normal">
+		</difficulty>
+		<difficulty level="normal">
 			<ballDx>1.2</ballDx>
 			<ballDy>1.2</ballDy>
-			<brickRowCount>5</brickRowCount>
-			<brickColumnCount>10</brickColumnCount>
+			<brickRows>5</brickRows>
+			<brickColumns>10</brickColumns>
 			<bonusesEnabled>true</bonusesEnabled>
 			<moreBonuses>true</moreBonuses>
-			<lifes>3</lifes>
+			<life>3</life>
 			<platformWidth>0.15</platformWidth>
 			<platformStep>7</platformStep>
-		</difficalty>
-		<difficalty level="hard">
+		</difficulty>
+		<difficulty level="hard">
 			<ballDx>1.5</ballDx>
 			<ballDy>1.5</ballDy>
-			<brickRowCount>5</brickRowCount>
-			<brickColumnCount>10</brickColumnCount>
+			<brickRows>5</brickRows>
+			<brickColumns>10</brickColumns>
 			<bonusesEnabled>true</bonusesEnabled>
 			<moreBonuses>false</moreBonuses>
-			<lifes>2</lifes>
+			<life>2</life>
 			<platformWidth>0.1</platformWidth>
 			<platformStep>9</platformStep>
-		</difficalty>
-		<difficalty level="impossible">
+		</difficulty>
+		<difficulty level="impossible">
 			<ballDx>2.0</ballDx>
 			<ballDy>2.0</ballDy>
-			<brickRowCount>6</brickRowCount>
-			<brickColumnCount>12</brickColumnCount>
+			<brickRows>6</brickRows>
+			<brickColumns>12</brickColumns>
 			<bonusesEnabled>false</bonusesEnabled>
 			<moreBonuses>false</moreBonuses>
-			<lifes>1</lifes>
+			<life>1</life>
 			<platformWidth>0.08</platformWidth>
 			<platformStep>10</platformStep>
-		</difficalty>
+		</difficulty>
 	</difficulties>
-	
 </config>

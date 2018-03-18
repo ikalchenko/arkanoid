@@ -67,7 +67,7 @@ canvas {
 	text-decoration: none;
 	color: #777
 }
-#winBox, #leaderboard, #info, #loseBox, #nextLevelBox {
+#winBox, #leaderboardBox, #infoBox, #loseBox, #nextLevelBox {
 	display: none;
 }
 
@@ -84,7 +84,7 @@ canvas {
 	text-align: center;
 }
 
-#blockWrapper {
+#boxWrapper {
 	display: block;
 	position: absolute;
 	width: 100%;
@@ -137,7 +137,7 @@ canvas {
 	align-items: center;
 }
 
-#gameInfo{
+#gameStat{
 	position: absolute;
 	width: 100%;
 	height: 10%;
@@ -155,7 +155,7 @@ canvas {
 	justify-content: space-around;
 	align-items: center;
 }
-#lifesField img {
+#lifeField img {
 	height: 20px;
 }
 .menu-button {
@@ -170,7 +170,7 @@ canvas {
 	cursor: pointer;
 }
 
-#startButton {
+#startGameButton {
 	background-color: #999;
 	padding: 20px;
 	margin-top: 20px;
@@ -181,7 +181,7 @@ canvas {
 	cursor: pointer;
 }
 
-#startButton:active {
+#startGameButton:active {
 	margin-top: 25px;
 	margin-bottom: 15px;
 	margin-left: 10px;
@@ -225,7 +225,7 @@ input[type="checkbox"] {
 	display: none;
 }
 
-.diff label, .control label, .infinity-mode label {
+.difficulty label, .control label, .infinity-mode label {
 	display: block;
 	padding: 7px;
 	margin: 5px;
@@ -271,4 +271,9 @@ label:hover {
 	cursor: pointer;
 }
 
+.game-name {
+	display: flex;
+	flex-direction: row;
 
+
+}
