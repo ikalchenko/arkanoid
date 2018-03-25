@@ -1,38 +1,140 @@
+class Score {
+    constructor(score) {
+        if (score !== undefined) {
+            this.highscore = score.highscore;
+        } else {
+            this.highscore = {
+                infinity: {
+                    easy: 0,
+                    normal: 0,
+                    hard: 0,
+                    impossible: 0
+                },
+                regular: {
+                    easy: 0,
+                    normal: 0,
+                    hard: 0,
+                    impossible: 0
+                }
+            };
+        }
+        this.currentScore = {
+            infinity: {
+                easy: 0,
+                normal: 0,
+                hard: 0,
+                impossible: 0
+            },
+            regular: {
+                easy: 0,
+                normal: 0,
+                hard: 0,
+                impossible: 0
+            }
+        };
+    }
+
+    update(points, config) {
+        if (config.infinity) {
+            switch (config.difficulty) {
+                case 'easy': 
+                    this.currentScore.infinity.easy += points;
+                    if (this.highscore.infinity.easy < this.currentScore.infinity.easy) {
+                        this.highscore.infinity.easy = this.currentScore.infinity.easy;
+                    }
+                    break;
+                case 'normal':
+                    this.currentScore.infinity.normal += points;
+                    if (this.highscore.infinity.normal < this.currentScore.infinity.normal) {
+                        this.highscore.infinity.normal = this.currentScore.infinity.normal;
+                    }
+                    break;
+                case 'hard':
+                    this.currentScore.infinity.hard += points;
+                    if (this.highscore.infinity.hard < this.currentScore.infinity.hard) {
+                        this.highscore.infinity.hard = this.currentScore.infinity.hard;
+                    }
+                    break;
+                case 'impossible':
+                    this.currentScore.infinity.impossible += points;
+                    if (this.highscore.infinity.impossible < this.currentScore.infinity.impossible) {
+                        this.highscore.infinity.impossible = this.currentScore.infinity.impossible;
+                    }
+                    break;
+            }
+        } else {
+            switch (config.difficulty) {
+                case 'easy':
+                    this.currentScore.regular.easy += points;
+                    if (this.highscore.regular.easy < this.currentScore.regular.easy) {
+                        this.highscore.regular.easy = this.currentScore.regular.easy;
+                    }
+                    break;
+                case 'normal':
+                    this.currentScore.regular.normal += points;
+                    if (this.highscore.regular.normal < this.currentScore.regular.normal) {
+                        this.highscore.regular.normal = this.currentScore.regular.normal;
+                    }
+                    break;
+                case 'hard':
+                    this.currentScore.regular.hard += points;
+                    if (this.highscore.regular.hard < this.currentScore.regular.hard) {
+                        this.highscore.regular.hard = this.currentScore.regular.hard;
+                    }
+                    break;
+                case 'impossible':
+                    this.currentScore.regular.impossible += points;
+                    if (this.highscore.regular.impossible < this.currentScore.regular.impossible) {
+                        this.highscore.regular.impossible = this.currentScore.regular.impossible;
+                    }
+                    break;
+            }
+
+        }
+
+    }
+}
+
 class Player {
-    constructor() {
-        this.name = 'smb';
-        this.life = 1;
-        if (this.checkCookies()) {
-            this.checkLocalStorage();
+    constructor(storedPlayer, name) {
+        if (storedPlayer === null) {
+            this.name = name;
+            this.life = 1;
+            this.timeInGame = 0;
+            this.availableLevel = 1;
+            this.score = new Score();
         } else {
-            this.savePlayer();
+            this.name = storedPlayer.name;
+            this.life = storedPlayer.life;
+            this.timeInGame = storedPlayer.timeInGame;
+            this.availableLevel = storedPlayer.availableLevel;
+            this.score = new Score(storedPlayer.score);
         }
     }
 
-    checkCookies() {
-        return true;
-    }
-
-    checkLocalStorage() {
+    serialize() {
+        localStorage.setItem(this.name, JSON.stringify(this));
 
     }
+}
 
-    savePlayer() {
-
+class Timer {
+    constructor(duration) {
+        this.duration = duration;
+        this.timeLeft = this.duration;
+        this.timestamp = Date.now();
+        this.stopped = false;
+        this.update();
     }
 
-    updateCookies() {
-
-    }
-
-    submitName() {
-
-        if (ui.userNameInput.value === '') {
-            this.name = 'smb who h8s 2 enter a names';
-        } else {
-            this.name = ui.userNameInput.value;
+    update() {
+        if (Date.now() - this.timestamp >= 1000) {
+            this.timeLeft--;
+            this.timestamp = Date.now();
         }
-        ui.greeting.innerText = this.name;
+        if (this.timeLeft <= 0) {
+            this.stopped = true;
+        }
     }
 }
 
@@ -45,9 +147,12 @@ class Config {
         this.infinity = document.querySelector('input[name=infinity]:checked').value === 'infinityOn';
         this.control = document.querySelector('input[name=control]:checked').value;
         this.difficulty = document.querySelector('input[name=difficulty]:checked').value;
+        if (this.infinity) {
+            Brick.bricksInRowDestroyed = [0, 0, 0, 0, 0, 0];
+        }
     }
 
-    setXMLConfig(player, ball, platform) {
+    setXMLConfig(ball) {
         let xhr = new XMLHttpRequest();
         xhr.open('GET', 'config/config.xml', false);
         xhr.send();
@@ -55,23 +160,22 @@ class Config {
         let configNodes = xml.children[0].children[0].children;
         for (let node of configNodes) {
             if (node.getAttribute('level') === this.difficulty) {
-                ball.dx *= node.querySelector('ballDx').innerHTML;
-                ball.dy *= node.querySelector('ballDy').innerHTML;
-                this.brickRows = node.querySelector('brickRows').innerHTML;
-                this.brickColumns = node.querySelector('brickColumns').innerHTML;
-                this.bonusesEnabled = node.querySelector('bonusesEnabled').innerHTML;
-                this.moreBonuses = node.querySelector('moreBonuses').innerHTML;
-                player.life = node.querySelector('life').innerHTML;
-                Platform.width *= node.querySelector('platformWidth').innerHTML;
-                platform.step = node.querySelector('platformStep').innerHTML;
+                ball.dx *= Number(node.querySelector('ballDx').innerHTML);
+                ball.dy *= Number(node.querySelector('ballDy').innerHTML);
+                this.brickRows = Number(node.querySelector('brickRows').innerHTML);
+                this.brickColumns = Number(node.querySelector('brickColumns').innerHTML);
+                this.bonusesEnabled = node.querySelector('bonusesEnabled').innerHTML === 'true';
+                this.moreBonuses = node.querySelector('moreBonuses').innerHTML === 'true';
+                this.playerLife = Number(node.querySelector('life').innerHTML);
+                this.platformWidthMultiplier = Number(node.querySelector('platformWidth').innerHTML);
+                this.platformStep = Number(node.querySelector('platformStep').innerHTML);
+                this.bonusDuration = Number(node.querySelector('bonusDuration').innerHTML);
                 break;
-
             }
         }
     }
 }
 
-//smth like interface, just for inheritance
 class Drawable {
     constructor(x, y, dx, dy, color) {
         this.x = x;
@@ -91,17 +195,18 @@ class Drawable {
 class Brick extends Drawable {
     constructor(x, y, row, column, hitsLeft) {
         super(x, y);
-        Brick.color = {
+        Brick.colors = {
             ONE_HIT: '#0f0',
             TWO_HITS: '#00f',
             THREE_HITS: '#f00'
         };
         this.row = row;
         this.column = column;
-        this.hitsLeft = hitsLeft;//game.config.infinity ? ((Math.random() * 100 < 30) ? 2 : 1) : (this.row === 0 ? 2 : 1);
-        this.haveBonus = game.config.bonusesEnabled ? (game.config.moreBonuses ? (Math.round(Math.random() * 100) < 30 ? Bonus.getRandomBonusType() : 'none')
-            : (Math.round(Math.random() * 100) < 10 ? Bonus.getRandomBonusType() : 'none')) : 'none';
+        this.hitsLeft = hitsLeft;
+        this.points = this.hitsLeft * 10;
+        this.haveBonus = Bonus.getBonus();
         this.color = this.setBrickColor();
+        this.destroyed = false;
     }
 
     draw() {
@@ -109,24 +214,52 @@ class Brick extends Drawable {
             ui.context.beginPath();
             ui.context.rect(this.x, this.y, Brick.width, Brick.height);
             ui.context.fillStyle = this.color;
+            ui.context.lineWidth = 4;
+            ui.context.strokeStyle = '#eee';
+            ui.context.stroke();
             ui.context.fill();
             ui.context.closePath();
         }
     }
 
-    update() {
-
+    static updateInfinity() {
+        for (let r = 0; r < game.config.brickRows; r++) {
+            for (let c = 0; c < game.config.brickColumns; c++) {
+                if (game.bricks[r][c].hitsLeft <= 0 && !game.bricks[r][c].destroyed) {
+                    Brick.bricksInRowDestroyed[r]++;
+                    game.bricks[r][c].destroyed = true;
+                }
+                if (Brick.bricksInRowDestroyed[r] >= game.config.brickColumns) {
+                    game.bricks.splice(r, 1);
+                    game.bricks.unshift(Brick.getRandomBrickRow());
+                    Brick.bricksInRowDestroyed.splice(r, 1);
+                    Brick.bricksInRowDestroyed.unshift(0);
+                    Brick.recalculateCoordinates();
+                }
+            }
+        }
     }
 
+    static getRandomBrickRow() {
+        let bricks = [];
+        for (let c = 0; c < game.config.brickColumns; c++) {
+            bricks.push(new Brick(c * (Brick.width + Brick.margin),
+                0 + Brick.topMargin,
+                0,
+                c,
+                (Math.random() * 100 < 30) ? ((Math.random() * 100 < 30) ? 3 : 2) : 1));
+        }
+        return bricks;
+    }
 
     setBrickColor() {
         switch (this.hitsLeft) {
             case 1:
-                return Brick.color.ONE_HIT;
+                return Brick.colors.ONE_HIT;
             case 2:
-                return Brick.color.TWO_HITS;
+                return Brick.colors.TWO_HITS;
             case 3:
-                return Brick.color.THREE_HITS;
+                return Brick.colors.THREE_HITS;
         }
     }
 
@@ -135,77 +268,214 @@ class Brick extends Drawable {
         for (let r = 0; r < rows; r++) {
             bricks[r] = [];
             for (let c = 0; c < columns; c++) {
-                if (infinityMode){
-                    bricks[r].push(new Brick(c * (Brick.width + Brick.margin),
-                                            r * (Brick.height + Brick.margin) + Brick.topMargin,
-                                            r,
-                                            c,
-                                            (Math.random() * 100 < 30) ? ((Math.random() * 100 < 30) ? 3 : 2) : 1));
+                if (infinityMode) {
+                    bricks[r].push(new Brick(c * Brick.width,
+                            r * Brick.height + Brick.topMargin,
+                            r,
+                            c,
+                            (Math.random() * 100 < 30) ? ((Math.random() * 100 < 30) ? 3 : 2) : 1));
                 } else {
                     if (level === 1) {
-                        bricks[r].push(new Brick(c * (Brick.width + Brick.margin),
-                                                r * (Brick.height + Brick.margin) + Brick.topMargin,
-                                                r,
-                                                c,
-                                                r < 2 ? (r === 0 ? 3 : 2) : 1));
+                        bricks[r].push(new Brick(c * Brick.width,
+                            r * Brick.height + Brick.topMargin,
+                            r,
+                            c,
+                            r < 2 ? (r === 0 ? 3 : 2) : 1));
                     }
                 }
             }
         }
         return bricks;
     }
+
+    static recalculateCoordinates() {
+        for (let r = 1; r < game.config.brickRows; r++) {
+            for (let c = 0; c < game.config.brickColumns; c++) {
+                game.bricks[r][c].row++;
+                game.bricks[r][c].y = game.bricks[r][c].row * (Brick.height + Brick.margin) + Brick.topMargin;
+            }
+        }
+    }
+
+    static adapt() {
+        for (let r = 0; r < game.config.brickRows; r++) {
+            for (let c = 0; c < game.config.brickColumns; c++) {
+                game.bricks[r][c].x = c * Brick.width;
+                game.bricks[r][c].y = game.bricks[r][c].row * Brick.height + Brick.topMargin;
+            }
+        }
+    }
 }
 
 class Bonus extends Drawable {
-    constructor() {
-        super();
-        Bonus.type = {
-            AL: 'addLife',
-            SDB: 'slowDownBall',
-            EP: 'expandPlatform',
-            SB: 'stickBall',
-            DS: 'doubleScore'
+    constructor(x, y, dx, dy, type) {
+        super(x, y, dx, dy);
+        Bonus.types = {
+            ADD_LIFE: 'addLife',
+            SLOW_DOWN_BALL: 'slowDownBall',
+            EXPAND_PLATFORM: 'expandPlatform',
+            STICK_BALL: 'stickBall',
+            DOUBLE_SCORE: 'doubleScore'
         };
-        Bonus.color = {
+        Bonus.colors = {
             ADD_LIFE: '#dc143c',
             SLOW_DOWN_BALL: '#f40',
             EXPAND_PLATFORM: '#2120ff',
             STICK_BALL: '#8a2be2',
             DOUBLE_SCORE: '#00ff47'
         };
+        this.type = type;
+        this.color = Bonus.setBonusColor(this.type);
+        this.duration = game.config.bonusDuration;
+        this.requiredTimer = false;
+        this.timerAssigned = false;
+        this.applied = false;
     }
 
     static getRandomBonusType() {
         let rand = Math.round(Math.random() * 4);
         switch (rand) {
             case 0:
-                return Bonus.type.AL;
+                return Bonus.types.ADD_LIFE;
             case 1:
-                return Bonus.type.DS;
+                return Bonus.types.DOUBLE_SCORE;
             case 2:
-                return Bonus.type.EP;
+                return Bonus.types.EXPAND_PLATFORM;
             case 3:
-                return Bonus.type.SB;
+                return Bonus.types.STICK_BALL;
             case 4:
-                return Bonus.type.SDB;
+                return Bonus.types.SLOW_DOWN_BALL;
+        }
+    }
+
+    static setBonusColor(type) {
+        switch (type) {
+            case Bonus.types.ADD_LIFE:
+                return Bonus.colors.ADD_LIFE;
+            case Bonus.types.DOUBLE_SCORE:
+                return Bonus.colors.DOUBLE_SCORE;
+            case Bonus.types.EXPAND_PLATFORM:
+                return Bonus.colors.EXPAND_PLATFORM;
+            case Bonus.types.STICK_BALL:
+                return Bonus.colors.STICK_BALL;
+            case Bonus.types.SLOW_DOWN_BALL:
+                return Bonus.colors.SLOW_DOWN_BALL;
+        }
+    }
+
+    static resetBonuses() {
+        game.platform.expanded = false;
+        game.platform.canExpend = false;
+        game.ball.canSlowDown = false;
+        game.ball.slowedDown = false;
+        game.ball.sticks = false;
+        game.ball.onPlatform = false;
+    }
+
+    static copy(target, source) {
+            Object.defineProperties(target, Object.keys(source).reduce((descriptors, key) => {
+                descriptors[key] = Object.getOwnPropertyDescriptor(source, key);
+                return descriptors;
+            }, {}));
+        return target;
+    }
+
+    cancel() {
+        switch (this.type) {
+            case Bonus.types.EXPAND_PLATFORM:
+                game.platform.canExpend = false;
+                this.applied = false;
+                Platform.width = Platform.regularWidth;
+                break;
+            case Bonus.types.STICK_BALL:
+                game.ball.sticks = false;
+                game.ball.onPlatform = false;
+                this.applied = false;
+                break;
+            case Bonus.types.SLOW_DOWN_BALL:
+                this.applied = false;
+                game.ball.canSlowDown = false;
+                game.ball.slowedDown = false;
+                break;
+        }
+
+    }
+
+    apply() {
+        switch (this.type) {
+            case Bonus.types.ADD_LIFE:
+                game.player.life++;
+                this.applied = true;
+                break;
+            case Bonus.types.DOUBLE_SCORE:
+                //game.player.score.currentScore *= 2;
+                this.applied = true;
+                break;
+            case Bonus.types.EXPAND_PLATFORM:
+                game.platform.canExpend = true;
+                this.applied = true;
+                this.requiredTimer = true;
+                break;
+            case Bonus.types.STICK_BALL:
+                game.ball.sticks = true;
+                this.applied = true;
+                this.requiredTimer = true;
+                break;
+            case Bonus.types.SLOW_DOWN_BALL:
+                this.applied = true;
+                game.ball.canSlowDown = true;
+                this.requiredTimer = true;
+                break;
         }
     }
 
     draw() {
-
+        if (!this.applied) {
+            ui.context.beginPath();
+            ui.context.rect(this.x, this.y, Bonus.width, Bonus.height);
+            ui.context.fillStyle = this.color;
+            ui.context.fill();
+            ui.context.closePath();
+        }
     }
 
-    update() {
+    update(delta) {
+        if (!this.applied) {
+            this.y += this.dy * delta;
+        }
+        if (this.x + Bonus.width > game.platform.x && this.x < game.platform.x + Platform.width
+            && this.y + Bonus.height > game.platform.y && this.y < game.platform.y + Platform.height
+            && !this.applied) {
+            this.apply();
+        }
+        return !(this.delete());
+    }
 
+    delete() {
+        if (this.y > window.innerHeight + 50) {
+            return true;
+        }
+    }
+
+    static getBonus() {
+        if (game.config.bonusesEnabled) {
+            if (game.config.moreBonuses) {
+                if (Math.round(Math.random() * 100) < 30) {
+                    return Bonus.getRandomBonusType();
+                } else return 'none';
+            } else if (Math.round(Math.random() * 100) < 10) {
+                return Bonus.getRandomBonusType();
+            } else return 'none';
+        } else return 'none';
     }
 }
 
 class Platform extends Drawable {
-    constructor(x, y, color) {
+    constructor(x, y, color, step) {
         super(x, y, 0, 0, color);
-        Platform.width = window.innerWidth;
-        Platform.height = Math.round(window.innerHeight * 0.03);
-        this.step = 7;
+        this.step = step;
+        this.canExpend = false;
+        this.expanded = false;
     }
 
     draw() {
@@ -214,7 +484,6 @@ class Platform extends Drawable {
         ui.context.fillStyle = this.color;
         ui.context.fill();
         ui.context.closePath();
-
     }
 
     update(x, y) {
@@ -231,12 +500,21 @@ class Platform extends Drawable {
             } else {
                 this.x += Number(this.step);
             }
-
         }
         if (x > Platform.width / 2 && x < window.innerWidth - Platform.width / 2) {
             this.x = x - Platform.width / 2;
         }
-        //console.log('x: ' + this.x + ' step: ' + this.step + ' typeof x: ' + typeof this.x);
+        if (this.canExpend && !this.expanded) {
+            this.x -= Math.round(Platform.width * 0.5 / 2);
+            Platform.regularWidth = Platform.width;
+            Platform.width *= 1.5;
+            this.expanded = true;
+        }
+        if (this.expanded && game.bonusTimer.stopped) {
+            Platform.width = Platform.regularWidth;
+            this.x += Math.round(Platform.width * 0.5 / 2);
+            Bonus.resetBonuses();
+        }
     }
 }
 
@@ -244,7 +522,10 @@ class Ball extends Drawable {
     constructor(x, y, radius, delta, color) {
         super(x, y, delta, -delta, color === undefined ? Ball.getRandomColor() : color);
         this.radius = radius;
-        this.onPlatform = false;
+        this.onPlatform = true;
+        this.sticks = false;
+        this.canSlowDown = false;
+        this.slowedDown = false;
     }
 
     draw() {
@@ -255,14 +536,41 @@ class Ball extends Drawable {
         ui.context.closePath();
     }
 
+    start() {
+        this.onPlatform = false;
+    }
+
     update(delta) {
+        if (this.canSlowDown && !this.slowedDown) {
+            this.dx *= 0.5;
+            this.dy *= 0.5;
+            this.slowedDown = true;
+        }
+        if (game.bonusTimer !== undefined && game.bonusTimer.stopped && (this.slowedDown || this.sticks)) {
+            if (this.sticks) {
+                Bonus.resetBonuses();
+            } else {
+                this.dx *= 2;
+                this.dy *= 2;
+                Bonus.resetBonuses();
+            }
+        }
         if (this.onPlatform) {
-            this.x = game.platform.x + Platform.width / 2;
-            this.y = game.platform.y - this.radius;
+            if (this.sticks) {
+                this.x = game.platform.x + Ball.deltaPlatform;
+                this.y = game.platform.y - this.radius;
+            } else {
+                this.x = game.platform.x + Platform.width / 2;
+                this.y = game.platform.y - this.radius;
+            }
         } else {
             let platformPart = Platform.width / 7;
             if (this.y + this.radius > game.platform.y && this.y - this.radius < game.platform.y + Platform.height) {
                 if (this.x < game.platform.x + Platform.width && this.x > game.platform.x) {
+                    if (this.sticks) {
+                        this.onPlatform = true;
+                        Ball.deltaPlatform = Math.abs(game.platform.x - this.x);
+                    }
                     this.dy = -this.dy;
                     switch (true) {
                         case this.x > game.platform.x && this.x < game.platform.x + platformPart:
@@ -287,7 +595,6 @@ class Ball extends Drawable {
                             this.dx = delta * 1.5;
                             break;
                     }
-
                 } else if (this.x + this.radius > game.platform.x && this.x - this.radius < game.platform.x + Platform.width) {
                     this.dx = -this.dx;
                 }
@@ -297,10 +604,9 @@ class Ball extends Drawable {
             }
             if (this.y > window.innerHeight + 50 || this.y < this.radius) {
                 this.dy = -this.dy;
-
             }
             this.x += this.dx * delta;
-            this.y += this.dy * delta; // change to +=
+            this.y += this.dy * delta;
 
         }
 
@@ -322,16 +628,28 @@ class Ball extends Drawable {
 }
 
 class ProgressBar extends Drawable {
-    constructor() {
-        super();
+    constructor(duration) {
+        super(0, 0, 0, 0, 'red');
+        this.duration = duration;
+        this.dx = window.innerWidth / duration / 100;
+        this.stopped = false;
     }
 
     draw() {
-
+        ui.context.beginPath();
+        ui.context.rect(this.x, this.y, ProgressBar.width, ProgressBar.height);
+        ui.context.fillStyle = this.color;
+        ui.context.fill();
+        ui.context.closePath();
     }
 
-    update() {
-
+    update(delta) {
+        if (!this.stopped) {
+            this.x -= this.dx * delta;
+            if (this.x + ProgressBar.width <= 0) {
+                this.stopped = true;
+            }
+        }
     }
 }
 
@@ -339,35 +657,53 @@ class Game {
     constructor(name, version) {
         this.name = name;
         this.version = version;
-        this.player = new Player();
         this.timeDelta = Math.round(((innerWidth + innerHeight) / 2) * 0.003);
         this.lastFrameTime = 10;
         this.config = new Config();
-        this.platform = new Platform(window.innerWidth / 2, window.innerHeight - 50, '#0aae0d', this.config.step);
+        this.ball = new Ball(0, 0, 10, this.timeDelta);
+        this.paused = true;
+        this.bonuses = [];
+        this.appliedBonus;
+        this.newBonus;
+    }
+
+    init() {
+        this.config = new Config();
         this.ball = new Ball(500, 500, 10, this.timeDelta);
-        new Bonus(); //temporary
+        this.paused = true;
+        this.progressBar = undefined;
+        this.bonuses = [];
     }
 
     setup() {
         this.config.readPlayerConfig();
-        this.config.setXMLConfig(this.player, this.ball, this.platform);
+        this.config.setXMLConfig(this.ball);
     }
 
     start() {
+        this.paused = false;
+        new Bonus();
         this.bricks = Brick.createBricks(this.config.brickRows, this.config.brickColumns, this.config.level, this.config.infinity);
-        requestAnimationFrame((timestamp) => this.loop(timestamp));
+        this.platform = new Platform((window.innerWidth / 2 - window.innerWidth * this.config.platformWidthMultiplier / 2),
+            window.innerHeight - 50,
+            '#006e91',
+            this.config.platformStep);
+        UI.adapt();
+        this.requestID = requestAnimationFrame((timestamp) => this.loop(timestamp));
     }
 
     stop() {
-
+        cancelAnimationFrame(this.requestID);
+        this.paused = true;
+        this.init();
     }
 
     pause() {
-
+        this.paused = !this.paused;
     }
 
     resume() {
-
+        this.paused = false;
     }
 
     collisionDetection() {
@@ -375,15 +711,33 @@ class Game {
             for (let c = 0; c < this.config.brickColumns; c++) {
                 let currentBrick = this.bricks[r][c];
                 if (currentBrick.hitsLeft > 0) {
-                    if (game.ball.y + game.ball.radius > currentBrick.y && game.ball.y - game.ball.radius < currentBrick.y + Brick.height) {
-                        if (game.ball.x + game.ball.radius > currentBrick.x && game.ball.x + game.ball.radius < currentBrick.x + Brick.width) {
-                            game.ball.dy = -game.ball.dy;
+                    if (this.ball.y + this.ball.radius > currentBrick.y
+                        && this.ball.y - this.ball.radius < currentBrick.y + Brick.height) {
+                        if (this.ball.x + this.ball.radius > currentBrick.x
+                            && this.ball.x - this.ball.radius < currentBrick.x + Brick.width) {
+                            if (this.ball.y + this.ball.radius + this.ball.dy > currentBrick.y + Brick.height
+                                && (this.ball.x + this.ball.radius >= currentBrick.x + Brick.width
+                                    || this.ball.x - this.ball.radius <= currentBrick.x)) {
+                                this.ball.dx = -this.ball.dx;
+                            } else {
+                                this.ball.dy = -this.ball.dy;
+                            }
+                            if (currentBrick.hitsLeft === 1) {
+                                this.player.score.update(currentBrick.points, this.config);
+                            }
+                            if (currentBrick.haveBonus !== 'none' && currentBrick.hitsLeft === 1) {
+                                this.bonuses.push(new Bonus(currentBrick.x + Brick.width / 2 - Bonus.width / 2,
+                                    currentBrick.y + Brick.height,
+                                    0,
+                                    this.timeDelta,
+                                    currentBrick.haveBonus));
+                            }
                             currentBrick.hitsLeft--;
                             if (currentBrick.hitsLeft === 1) {
-                                currentBrick.color = Brick.color.ONE_HIT;
+                                currentBrick.color = Brick.colors.ONE_HIT;
                             }
                             if (currentBrick.hitsLeft === 2) {
-                                currentBrick.color = Brick.color.TWO_HITS;
+                                currentBrick.color = Brick.colors.TWO_HITS;
                             }
                         }
                     }
@@ -393,21 +747,67 @@ class Game {
     }
 
     update(delta) {
-        this.ball.update(delta);
-        this.platform.update();
-        this.collisionDetection()
-        ui.updateGameStat();
+        if (!this.paused) {
+            this.ball.update(delta);
+            this.platform.update();
+            for (let brickRow of this.bricks) {
+                for (let brick of brickRow) {
+                    brick.update();
+                }
+            }
+            for (let current in this.bonuses) {
+                if (this.bonuses[current] !== undefined) {
+                    if (!(this.bonuses[current].update(delta))) { //deleting lost bonuses from array
+                        this.bonuses.splice(current, 1);
+                    }
+                    if (this.bonuses[current] !== undefined
+                        && this.bonuses[current].requiredTimer === true
+                        && this.bonuses[current].applied
+                        && !this.bonuses[current].timerAssigned) {
+                        this.bonusTimer = new Timer(this.config.bonusDuration);
+                        this.progressBar = new ProgressBar(this.config.bonusDuration);
+                        this.bonuses[current].timerAssigned = !this.bonuses[current].timerAssigned;
+                        if (this.appliedBonus === undefined) {
+                            this.appliedBonus = Object.create(this.bonuses[current]);
+                        } else {
+                            this.newBonus = Object.create(this.bonuses[current]);
+                        }
+                        if (this.newBonus !== undefined && this.newBonus.type !== this.appliedBonus.type) {
+                            this.appliedBonus.cancel();
+                            this.appliedBonus = this.newBonus;
+                        }
+                    }
+                }
+            }
+            if (this.bonusTimer !== undefined && !this.bonusTimer.stopped) {
+                this.bonusTimer.update();
+            }
+            if (this.progressBar !== undefined && !this.progressBar.stopped) {
+                this.progressBar.update(delta);
+            }
+            if (this.config.infinity) {
+                Brick.updateInfinity();
+            }
+            this.collisionDetection();
+            ui.updateGameStat();
+        }
     }
 
     render() {
         ui.context.clearRect(0, 0, window.innerWidth, window.innerHeight);
         this.ball.draw();
+        this.platform.draw();
+        if (this.progressBar !== undefined && !this.progressBar.stopped) {
+            this.progressBar.draw();
+        }
         for (let brickRow of this.bricks) {
             for (let brick of brickRow) {
                 brick.draw();
             }
         }
-        this.platform.draw();
+        for (let bonus of this.bonuses) {
+            bonus.draw();
+        }
     }
 
     loop(timestamp) {
@@ -419,12 +819,16 @@ class Game {
         this.timeDelta /= 10;
         this.update(this.timeDelta);
         this.render();
-        requestAnimationFrame((timestamp) => this.loop(timestamp));
+        this.requestID = requestAnimationFrame((timestamp) => this.loop(timestamp));
     }
 }
 
 class UI {
     constructor() {
+        UI.control = {
+            KEYBOARD: 'keyboard',
+            MOUSE: 'mouse'
+        };
         this.canvas = document.getElementById("canvas");
         this.context = this.canvas.getContext('2d');
         this.startGameBtn = document.getElementById('startGameButton');
@@ -449,10 +853,16 @@ class UI {
         this.closeInfoButton = document.getElementById('closeInfoButton');
         this.removeUserButton = document.getElementById('removeUserButton');
         this.changeUserButton = document.getElementById('changeUserButton');
+        this.pauseButton = document.getElementById('pauseButton');
+        this.pauseBox = document.getElementById('pauseBox');
+        this.resumeButton = document.getElementById('resumeButton');
+        this.backToMenuButton = document.getElementById('backToMenuButton');
         this.rightPressed = false;
         this.leftPressed = false;
         this.gameNameField.innerHTML = game.name;
         this.gameVersionField.innerHTML = 'v.' + game.version;
+        this.lastWindowHeight = window.innerHeight;
+        this.lastWindowWidth = window.innerWidth;
     }
 
     static switchFullScreen() {
@@ -475,7 +885,6 @@ class UI {
             }
             ui.fullScreenButton.innerHTML = '<i class="fas fa-expand"></i>';
         }
-
     }
 
     showGameStat() {
@@ -483,61 +892,101 @@ class UI {
     }
 
     updateGameStat() {
-        this.highscoreField.innerText = 'highscore: ' + game.player.highscore;
-        this.scoreField.innerText = 'score: ' + game.player.score;
+        this.highscoreField.innerText = 'highscore: ' + game.player.score.highscore;
+        this.scoreField.innerText = 'score: ' + game.player.score.currentScore;
         this.lifeField.innerText = 'x ' + game.player.life;
     }
 
-    adapt() {
+    static adapt() {
+        let resolutionDeltaWidth = ui.lastWindowWidth - window.innerWidth;
+        let resolutionDeltaHeight = ui.lastWindowHeight - window.innerHeight;
+        ui.lastWindowWidth = window.innerWidth;
+        ui.lastWindowHeight = window.innerHeight;
         Brick.width = Math.round(window.innerWidth / game.config.brickColumns);
-        Brick.height = Math.round((window.innerWidth / game.config.brickRows) / 10);
+        Brick.height = Math.round((window.innerHeight / game.config.brickRows) / 5);
+        Bonus.width = Math.round(Brick.width / 2);
+        Bonus.height = Math.round(Brick.height / 2);
+        Platform.width = window.innerWidth * game.config.platformWidthMultiplier;
+        Platform.height = Math.round(window.innerHeight * 0.03);
+        ProgressBar.width = window.innerWidth;
+        ProgressBar.height = Math.round(window.innerHeight * 0.0075);
         Brick.topMargin = Math.round(window.innerHeight * 0.1);
         Brick.margin = 2;
+        if (!game.paused) {
+            game.platform.x -= resolutionDeltaWidth;
+            game.platform.y -= resolutionDeltaHeight;
+            game.ball.x -= resolutionDeltaWidth;
+            game.ball.y -= resolutionDeltaHeight;
+            if (game.platform.x < 0) {
+                game.platform.x = 0;
+            }
+            if (game.platform.x + Platform.width > window.innerWidth) {
+                game.platform.x = window.innerWidth - Platform.width;
+            }
+        }
         ui.canvas.setAttribute('width', window.innerWidth);
         ui.canvas.setAttribute('height', window.innerHeight);
+        Brick.adapt();
     }
 
     controlHandler(event) {
         if (this.menu.style.display === 'none') {
-            if (game.config.control === 'mouse' && event !== undefined) {
+            if (game.config.control === UI.control.MOUSE && game.paused === false && event !== undefined) {
+                if (event.type === 'click') {
+                    game.ball.start();
+                }
                 game.platform.update(Math.round(event.clientX));
-            } else if (game.config.control === 'keyboard' && event !== undefined) {
-                if (event.type === 'keydown' && event.keyCode === 39) {
+            } else if (game.config.control === UI.control.KEYBOARD && event !== undefined) {
+                if (event.type === 'keydown' && (event.keyCode === 39 || event.keyCode === 68)) {
                     this.rightPressed = true;
                 }
-                if (event.type === 'keydown' && event.keyCode === 37) {
+                if (event.type === 'keydown' && (event.keyCode === 37 || event.keyCode === 65)) {
                     this.leftPressed = true;
                 }
-                if (event.type === 'keyup' && event.keyCode === 39) {
+                if (event.type === 'keyup' && (event.keyCode === 39 || event.keyCode === 68)) {
                     this.rightPressed = false;
                 }
-                if (event.type === 'keyup' && event.keyCode === 37) {
+                if (event.type === 'keyup' && (event.keyCode === 37 || event.keyCode === 65)) {
                     this.leftPressed = false;
                 }
+                if (event.type === 'keyup' && event.keyCode === 32) {
+                    game.ball.start();
+                }
+            }
+            if (event.type === 'keyup' && event.keyCode === 80) {
+                game.paused ? this.resume() : this.pause();
             }
         }
     }
 
     showBox(invoker) {
-        if (invoker === this.infoButton) {
-            this.boxWrapper.style.display = 'block';
-            this.infoBox.style.display = 'flex';
-        }
-        if (invoker === this.leaderboardButton) {
-            this.boxWrapper.style.display = 'block';
-            this.leaderboardBox.style.display = 'flex';
-        }
-        if (invoker === this.removeUserButton) {
-            ui.userNameInput.value = '';
-            this.boxWrapper.style.display = 'block';
-            this.nameForm.style.display = 'flex';
-            //removing player
-        }
-        if (invoker === this.changeUserButton) {
-            //save last user to local storage
-            ui.userNameInput.value = '';
-            this.boxWrapper.style.display = 'block';
-            this.nameForm.style.display = 'flex';
+        this.boxWrapper.style.display = 'block';
+        switch (invoker) {
+            case this.infoButton:
+                this.infoBox.style.display = 'flex';
+                break;
+            case this.leaderboardButton:
+                this.leaderboardBox.style.display = 'flex';
+                break;
+            case this.removeUserButton:
+                this.greeting.innerHTML = 'smb';
+                this.userNameInput.value = '';
+                this.nameForm.style.display = 'flex';
+                //removing player
+                break;
+            case this.changeUserButton:
+                //save last user to local storage
+                this.greeting.innerHTML = 'smb';
+                this.userNameInput.value = '';
+                this.nameForm.style.display = 'flex';
+                break;
+            case this.pauseButton:
+                this.pauseBox.style.display = 'flex';
+                break;
+            case this.backToMenuButton:
+                this.menu.style.display = 'flex';
+                this.boxWrapper.style.display = 'none';
+                break;
         }
     }
 
@@ -545,16 +994,52 @@ class UI {
         UI.hideBoxes(this.menu);
         this.showGameStat();
         game.setup();
-        if (game.config.control === 'mouse') {
+        if (game.config.control === UI.control.MOUSE) {
             this.canvas.style.cursor = 'none';
+        } else if (game.config.control === UI.control.KEYBOARD) {
+            this.canvas.style.cursor = 'default';
         }
-        this.adapt();
         game.start();
     }
 
     submitName() {
-        game.player.submitName();
+        let playerName;
+        if (this.userNameInput.value === '') {
+            playerName = 'smb who h8s 2 enter a names';
+        } else {
+            playerName = this.userNameInput.value;
+        }
+        this.greeting.innerText = playerName;
+        let storedPlayer = UI.checkLocalStorage(playerName);
+        if (storedPlayer !== null) {
+            storedPlayer = JSON.parse(storedPlayer);
+        } else {
+            storedPlayer = new Player(null, playerName, 1, 1, new Score(), 0);
+        }
+        game.player = new Player(storedPlayer);
         UI.hideBoxes(this.boxWrapper, this.nameForm);
+    }
+
+    static checkLocalStorage(playerName) {
+        return localStorage.getItem(playerName);
+    }
+
+    pause() {
+        if (ui.menu.style.display === 'none' && ui.pauseBox.style.display !== 'none') {
+            this.showBox(this.pauseButton);
+            game.pause();
+        }
+    }
+
+    resume() {
+        UI.hideBoxes(this.boxWrapper, this.pauseBox);
+        game.resume();
+    }
+
+    stop() {
+        UI.hideBoxes(this.pauseBox, this.gameStat, this.boxWrapper);
+        this.showBox(this.backToMenuButton);
+        game.stop();
     }
 
     static hideBoxes() {
@@ -562,23 +1047,37 @@ class UI {
             arguments[i].style.display = 'none';
         }
     }
+
+    leaderboard() {
+        this.showBox(this.leaderboardButton);
+
+    }
 }
 
 let game = new Game('FAILOID', '0.3.2');
 let ui = new UI();
 
-
-window.onresize = () => ui.adapt();
+window.addEventListener('beforeunload', () => {
+    if (game.player !== undefined) {
+        game.player.serialize();
+    }
+    return null;
+});
+window.onresize = (event) => UI.adapt(event, window.innerWidth, window.innerHeight);
+window.addEventListener('blur', () => ui.pause());
 ui.submitNameButton.addEventListener('click', () => ui.submitName());
 ui.startGameBtn.addEventListener('click', () => ui.start());
-ui.leaderboardButton.addEventListener('click', () => ui.showBox(ui.leaderboardButton));
+ui.leaderboardButton.addEventListener('click', () => ui.leaderboard());
 ui.infoButton.addEventListener('click', () => ui.showBox(ui.infoButton));
 ui.fullScreenButton.addEventListener('click', UI.switchFullScreen);
-ui.canvas.addEventListener('click', () => x);
+ui.canvas.addEventListener('click', (event) => ui.controlHandler(event));
 ui.closeLeaderboardButton.addEventListener('click', () => UI.hideBoxes(ui.boxWrapper, ui.leaderboardBox));
 ui.closeInfoButton.addEventListener('click', () => UI.hideBoxes(ui.boxWrapper, ui.infoBox));
 ui.removeUserButton.addEventListener('click', () => ui.showBox(ui.removeUserButton));
 ui.changeUserButton.addEventListener('click', () => ui.showBox(ui.changeUserButton));
+ui.pauseButton.addEventListener('click', () => ui.pause());
+ui.resumeButton.addEventListener('click', () => ui.resume());
+ui.backToMenuButton.addEventListener('click', () => ui.stop());
 document.addEventListener('mousemove', (event) => ui.controlHandler(event));
 document.addEventListener('keydown', (event) => ui.controlHandler(event));
 document.addEventListener('keyup', (event) => ui.controlHandler(event));

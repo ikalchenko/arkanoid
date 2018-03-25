@@ -8,6 +8,7 @@
 			<brickColumns>8</brickColumns>
 			<bonusesEnabled>true</bonusesEnabled>
 			<moreBonuses>true</moreBonuses>
+			<bonusDuration>15</bonusDuration>
 			<life>5</life>
 			<platformWidth>0.15</platformWidth>
 			<platformStep>7</platformStep>
@@ -19,6 +20,7 @@
 			<brickColumns>10</brickColumns>
 			<bonusesEnabled>true</bonusesEnabled>
 			<moreBonuses>true</moreBonuses>
+			<bonusDuration>15</bonusDuration>
 			<life>3</life>
 			<platformWidth>0.15</platformWidth>
 			<platformStep>7</platformStep>
@@ -30,6 +32,7 @@
 			<brickColumns>10</brickColumns>
 			<bonusesEnabled>true</bonusesEnabled>
 			<moreBonuses>false</moreBonuses>
+			<bonusDuration>10</bonusDuration>
 			<life>2</life>
 			<platformWidth>0.1</platformWidth>
 			<platformStep>9</platformStep>
@@ -44,6 +47,7 @@
 			<life>1</life>
 			<platformWidth>0.08</platformWidth>
 			<platformStep>10</platformStep>
+			<bonusDuration>0</bonusDuration>
 		</difficulty>
 	</difficulties>
 </config>

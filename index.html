@@ -4,62 +4,68 @@
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'/>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="icon" href="img/favicon.ico" />
+    <link rel="icon" type="icon" href="img/favicon.ico"/>
     <title>Failoid</title>
     <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 </head>
 <body>
-	<div id="boxWrapper"></div>
-	<div id="nameForm" class="dialog-box pixel-font" >
-		<div>enter your name:</div>
-		<input type="text" id="userName" placeholder="ivan">
-		<div class="menu-button" id="submitNameButton">submit</div>
+	<div id="boxWrapper" class="box-wrapper">
+		<div id="nameForm" class="dialog-box" >
+			<div>input your name:</div>
+			<input id="userName" type="text" placeholder="input ur name">
+			<div id="submitNameButton" class="menu-button">submit</div>
+		</div>
+		<div id="pauseBox" class="dialog-box hidden" >
+			<div>pause</div>
+			<div id="resumeButton" class="menu-button">resume</div>
+			<div id="backToMenuButton" class="menu-button">back to menu</div>
+
+		</div>
+		<div id="leaderboardBox" class="dialog-box hidden">leaderboard:
+			<div id="closeLeaderboardButton" class="close-button">x</div>
+		</div>
+		<div id="winBox" class="dialog-box hidden">you win!1!!
+			<div class="winScore">with score:&#160;<div id="winScoreField">0</div></div>
+			<div class="winLevel">and complete&#160;<div id="winLevelField">1</div><div>levels.</div></div>
+			<div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div>
+		</div>
+		<div id="loseBox" class="dialog-box hidden">you lose((99(
+			<div class="loseScoreField">with score:&#160;<div id="loseScoreField">0</div></div>
+			<div class="loseLevelField">at level:&#160;<div id="loseLevelField">1</div></div>
+			<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
+		</div>
+		<div id="nextLevelBox" class="dialog-box hidden">you complete&#160;<div class="completeLevelField">1</div>
+			<div class="completeLevelScore">with score:&#160;<div id="completeLevelScoreField"></div></div>
+			<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
+		</div>
+		<div id="infoBox" class="dialog-box hidden">info:
+			<div id="closeInfoButton" class="close-button">x</div>
+			<div class="centered-text">made with <i class="fas fa-heart"></i> & <i class="fas fa-coffee"></i> in kharkiv, ukraine, by <a href="https://github.com/ikalchenko/" target="_blank"><i class="fab fa-github"></i>ikalchenko</a></div>
+		</div>
 	</div>
-	<div id="leaderboardBox" class="pixel-font dialog-box">leaderboard:
-		<div id="closeLeaderboardButton">x</div>
-	</div>
-	<div id="winBox" class="pixel-font dialog-box">you win!1!!
-		<div class="winScore">with score:&#160;<div id="winScoreField">0</div></div>
-		<div class="winLevel">and complete&#160;<div id="winLevelField">1</div><div>levels.</div></div>
-		<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
-	</div>
-	<div id="loseBox" class="pixel-font dialog-box">you lose((99(
-		<div class="loseScoreField">with score:&#160;<div id="loseScoreField">0</div></div>
-		<div class="loseLevelField">at level:&#160;<div id="loseLevelField">1</div></div>
-		<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
-	</div>
-	<div id="nextLevelBox" class="pixel-font dialog-box">you complete&#160;<div class="completeLevelField">1</div>
-		<div class="completeLevelScore">with score:&#160;<div id="completeLevelScoreField"></div></div>
-		<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
-	</div>
-	<div id="infoBox" class="pixel-font dialog-box">info:
-		<div id="closeInfoButton">x</div>
-		<div class="centered-text">made with <i class="fas fa-heart"></i> & <i class="fas fa-coffee"></i> in kharkiv, ukraine, by <a href="https://github.com/ikalchenko/" target="_blank"><i class="fab fa-github"></i>ikalchenko</a></div>
-	</div>
-	<div id="menu" class="pixel-font menu" >
+	<div id="menu" class="menu" >
 		<div class="menu-items">
-			<div class="game-name">
-				<div id="gameName" class="game-heading"></div>
+			<div class="menu-item game-heading">
+				<div id="gameName" class="game-name"></div>
 				<div id="gameVersion"></div>
 			</div>
 			<div class="menu-item no-wrap">
 				<div>hello,</div>&#160;
 				<div id="greeting">smb</div>&#160;
-				<div id="removeUserButton"><i class="cursor fas fa-trash"></i></div>&#160;
-				<div id="changeUserButton"><i  class="cursor fas fa-sync"></i></div>
+				<div id="removeUserButton"><i class="pointer fas fa-trash"></i></div>&#160;
+				<div id="changeUserButton"><i  class="pointer fas fa-sync"></i></div>
 			</div>
-				<div class="menu-item">
-				<div class="menu-button" id="startGameButton"><i class="fas fa-play"></i> start game</div>
+			<div class="menu-item">
+				<div id="startGameButton" class="menu-button"><i class="fas fa-play"></i> start game</div>
 			</div>
-			<div class="infinity-mode">infinity mode: 
-					<input type="radio" name="infinity" id="infinityOn" value="infinityOn">
-					<label for="infinityOn">on</label>
-					<input type="radio" name="infinity" id="infinityOff" value="infinityOff" checked>
-					<label for="infinityOff">off</label>
+			<div class="menu-item infinity-mode flex">infinity mode:
+				<input type="radio" name="infinity" id="infinityOn" value="infinityOn">
+				<label for="infinityOn">on</label>
+				<input type="radio" name="infinity" id="infinityOff" value="infinityOff" checked>
+				<label for="infinityOff">off</label>
 			</div>
-			<div class="settings menu-item">
-				<div class="label ">choose control:</div>
-				<div class="controls">
+			<div class="menu-item">choose control:
+				<div class="flex">
 					<div class="control">
 						<input type="radio" name="control" id="keyboardControl" value="keyboard" checked>
 						<label for="keyboardControl">keyboard</label>
@@ -69,8 +75,9 @@
 						<label for="mouseControl">mouse</label>
 					</div>
 				</div>
-				<div class="lable">choose difficulty:</div>
-				<div class="difficulty">
+			</div>
+			<div class="menu-item">choose difficulty:
+				<div class="flex">
 					<div class="difficulty">
 						<input type="radio" name="difficulty" id="easyDifficulty" value="easy" checked>
 						<label for="easyDifficulty">easy</label>
@@ -96,7 +103,7 @@
 			</div>
 		</div>
 	</div>	
-	<div id="gameStat" class="pixel-font" >
+	<div id="gameStat">
 		<div id="highscoreField"></div>
 		<div id="scoreField"></div>
 		<div class="life no-wrap">
@@ -104,7 +111,7 @@
 			<div>&#160;</div>
 			<div id="lifeField"></div>
 		</div>
-        <i id="pauseButton" class="fas fa-pause"></i>
+         <div id="pauseButton"><i class="fas fa-pause"></i></div>
 	</div>
     <canvas id="canvas"></canvas>
     <script src="js/script.js"></script>
