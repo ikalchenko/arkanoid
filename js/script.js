@@ -678,7 +678,7 @@ class Game {
         new Bonus();
         this.bricks = Brick.createBricks(this.config.brickRows, this.config.brickColumns, this.config.level, this.config.infinity);
         this.platform = new Platform((window.innerWidth / 2 - window.innerWidth * this.config.platformWidthMultiplier / 2),
-            window.innerHeight - 50,
+            window.innerHeight * 0.5,
             '#006e91',
             this.config.platformStep);
         UI.adapt();
@@ -929,10 +929,15 @@ class UI {
     controlHandler(event) {
         if (this.menu.style.display === 'none') {
             if (game.config.control === UI.control.TOUCH && game.paused === false && event !== undefined) {
-                if (event.type === 'touch') {
+                if (event.type === 'touchstart') {
                     game.ball.start();
                 }
-                game.platform.update(Math.round(event.clientX));
+                if (event.type === 'touchend') {
+                    game.ball.start();
+                }
+                if (event.type === 'touchmove') {
+                    game.platform.update(Math.round(event.touches[0].clientX));
+                }
             }
             if (game.config.control === UI.control.MOUSE && game.paused === false && event !== undefined) {
                 if (event.type === 'click') {
