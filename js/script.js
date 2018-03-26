@@ -145,7 +145,7 @@ class Config {
 
     readPlayerConfig() {
         this.infinity = document.querySelector('input[name=infinity]:checked').value === 'infinityOn';
-        this.control = document.querySelector('input[name=control]:checked').value;
+        this.control = Config.mobile ? 'touch' : document.querySelector('input[name=control]:checked').value;
         this.difficulty = document.querySelector('input[name=difficulty]:checked').value;
         if (this.infinity) {
             Brick.bricksInRowDestroyed = [0, 0, 0, 0, 0, 0];
@@ -928,6 +928,12 @@ class UI {
 
     controlHandler(event) {
         if (this.menu.style.display === 'none') {
+            if (game.config.control === UI.control.TOUCH && game.paused === false && event !== undefined) {
+                if (event.type === 'touch') {
+                    game.ball.start();
+                }
+                game.platform.update(Math.round(event.clientX));
+            }
             if (game.config.control === UI.control.MOUSE && game.paused === false && event !== undefined) {
                 if (event.type === 'click') {
                     game.ball.start();
@@ -1054,6 +1060,9 @@ class UI {
 let game = new Game('FAILOID', '0.3.2');
 let ui = new UI();
 
+document.addEventListener('DOMContentLoaded', () => {
+    Config.mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+});
 window.addEventListener('beforeunload', () => {
     if (game.player !== undefined) {
         game.player.serialize();
@@ -1062,6 +1071,9 @@ window.addEventListener('beforeunload', () => {
 });
 window.onresize = (event) => UI.adapt(event, window.innerWidth, window.innerHeight);
 window.addEventListener('blur', () => ui.pause());
+ui.canvas.addEventListener('touchstart', (event) => ui.controlHandler(event));
+ui.canvas.addEventListener('touchmove', (event) => ui.controlHandler(event));
+ui.canvas.addEventListener('touchend', (event) => ui.controlHandler(event));
 ui.submitNameButton.addEventListener('click', () => ui.submitName());
 ui.startGameBtn.addEventListener('click', () => ui.start());
 ui.leaderboardButton.addEventListener('click', () => ui.leaderboard());
