@@ -64,7 +64,7 @@
 				<input type="radio" name="infinity" id="infinityOff" value="infinityOff" checked>
 				<label for="infinityOff">off</label>
 			</div>
-			<div class="menu-item">choose control:
+			<div class="menu-item controls">choose control:
 				<div class="flex">
 					<div class="control">
 						<input type="radio" name="control" id="keyboardControl" value="keyboard" checked>
@@ -77,22 +77,26 @@
 				</div>
 			</div>
 			<div class="menu-item">choose difficulty:
-				<div class="flex">
-					<div class="difficulty">
+				<div class="flex diff">
+					<div class="diff-group">
+						<div class="difficulty">
 						<input type="radio" name="difficulty" id="easyDifficulty" value="easy" checked>
 						<label for="easyDifficulty">easy</label>
+						</div>
+						<div class="difficulty">
+							<input type="radio" name="difficulty" id="normalDifficulty" value="normal">
+							<label for="normalDifficulty">normal</label>
+						</div>
 					</div>
-					<div class="difficulty">
-						<input type="radio" name="difficulty" id="normalDifficulty" value="normal">
-						<label for="normalDifficulty">normal</label>
-					</div>
-					<div class="difficulty">
-						<input type="radio" name="difficulty" id="hardDifficulty" value="hard">
-						<label for="hardDifficulty">hard</label>
-					</div>
-					<div class="difficulty">
-						<input type="radio" name="difficulty" id="impossibleDifficulty" value="impossible">
-						<label for="impossibleDifficulty">impossible</label>
+					<div class="diff-group">
+						<div class="difficulty">
+							<input type="radio" name="difficulty" id="hardDifficulty" value="hard">
+							<label for="hardDifficulty">hard</label>
+						</div>
+						<div class="difficulty">
+							<input type="radio" name="difficulty" id="impossibleDifficulty" value="impossible">
+							<label for="impossibleDifficulty">impossible</label>
+						</div>
 					</div>
 				</div>
 			</div>

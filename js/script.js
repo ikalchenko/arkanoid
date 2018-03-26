@@ -204,7 +204,7 @@ class Brick extends Drawable {
         this.column = column;
         this.hitsLeft = hitsLeft;
         this.points = this.hitsLeft * 10;
-        this.haveBonus = Bonus.getBonus();
+        this.haveBonus = Bonus.getRandomBonusType();// Bonus.getBonus();
         this.color = this.setBrickColor();
         this.destroyed = false;
     }
@@ -372,14 +372,6 @@ class Bonus extends Drawable {
         game.ball.onPlatform = false;
     }
 
-    static copy(target, source) {
-            Object.defineProperties(target, Object.keys(source).reduce((descriptors, key) => {
-                descriptors[key] = Object.getOwnPropertyDescriptor(source, key);
-                return descriptors;
-            }, {}));
-        return target;
-    }
-
     cancel() {
         switch (this.type) {
             case Bonus.types.EXPAND_PLATFORM:
@@ -443,7 +435,7 @@ class Bonus extends Drawable {
         if (!this.applied) {
             this.y += this.dy * delta;
         }
-        if (this.x + Bonus.width > game.platform.x && this.x < game.platform.x + Platform.width
+        if (this.x + Bonus.width > game.platform.x && this.x < game.platform.x + game.platform.width
             && this.y + Bonus.height > game.platform.y && this.y < game.platform.y + Platform.height
             && !this.applied) {
             this.apply();
@@ -473,14 +465,18 @@ class Bonus extends Drawable {
 class Platform extends Drawable {
     constructor(x, y, color, step) {
         super(x, y, 0, 0, color);
+        Platform.regularWidth = window.innerWidth * game.config.platformWidthMultiplier;
+        Platform.expendedWidth = Platform.regularWidth * 1.5;
+        Platform.height = Math.round(window.innerHeight * 0.03);
         this.step = step;
+        this.width = Platform.regularWidth;
         this.canExpend = false;
         this.expanded = false;
     }
 
     draw() {
         ui.context.beginPath();
-        ui.context.rect(this.x, this.y, Platform.width, Platform.height);
+        ui.context.rect(this.x, this.y, this.width, Platform.height);
         ui.context.fillStyle = this.color;
         ui.context.fill();
         ui.context.closePath();
@@ -495,23 +491,22 @@ class Platform extends Drawable {
             }
         }
         if (ui.rightPressed) {
-            if (this.x + Platform.width + this.step >= window.innerWidth) {
-                this.x = Math.round(window.innerWidth - Platform.width) + 1;
+            if (this.x + this.width + this.step >= window.innerWidth) {
+                this.x = Math.round(window.innerWidth - this.width) + 1;
             } else {
                 this.x += Number(this.step);
             }
         }
-        if (x > Platform.width / 2 && x < window.innerWidth - Platform.width / 2) {
-            this.x = x - Platform.width / 2;
+        if (x > this.width / 2 && x < window.innerWidth - this.width / 2) {
+            this.x = x - this.width / 2;
         }
         if (this.canExpend && !this.expanded) {
-            this.x -= Math.round(Platform.width * 0.5 / 2);
-            Platform.regularWidth = Platform.width;
-            Platform.width *= 1.5;
+            this.x -= Math.round(this.width * 0.5 / 2);
+            this.width = Platform.expendedWidth;
             this.expanded = true;
         }
         if (this.expanded && game.bonusTimer.stopped) {
-            Platform.width = Platform.regularWidth;
+            this.width = Platform.regularWidth;
             this.x += Math.round(Platform.width * 0.5 / 2);
             Bonus.resetBonuses();
         }
@@ -521,7 +516,7 @@ class Platform extends Drawable {
 class Ball extends Drawable {
     constructor(x, y, radius, delta, color) {
         super(x, y, delta, -delta, color === undefined ? Ball.getRandomColor() : color);
-        this.radius = radius;
+        Ball.radius = ((window.innerWidth + window.innerHeight) / 2) * 0.015;
         this.onPlatform = true;
         this.sticks = false;
         this.canSlowDown = false;
@@ -530,7 +525,7 @@ class Ball extends Drawable {
 
     draw() {
         ui.context.beginPath();
-        ui.context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ui.context.arc(this.x, this.y, Ball.radius, 0, Math.PI * 2);
         ui.context.fillStyle = this.color;
         ui.context.fill();
         ui.context.closePath();
@@ -558,15 +553,15 @@ class Ball extends Drawable {
         if (this.onPlatform) {
             if (this.sticks) {
                 this.x = game.platform.x + Ball.deltaPlatform;
-                this.y = game.platform.y - this.radius;
+                this.y = game.platform.y - Ball.radius;
             } else {
-                this.x = game.platform.x + Platform.width / 2;
-                this.y = game.platform.y - this.radius;
+                this.x = game.platform.x + game.platform.width / 2;
+                this.y = game.platform.y - Ball.radius;
             }
         } else {
-            let platformPart = Platform.width / 7;
-            if (this.y + this.radius > game.platform.y && this.y - this.radius < game.platform.y + Platform.height) {
-                if (this.x < game.platform.x + Platform.width && this.x > game.platform.x) {
+            let platformPart = game.platform.width / 7;
+            if (this.y + Ball.radius > game.platform.y && this.y - Ball.radius < game.platform.y + Platform.height) {
+                if (this.x < game.platform.x + game.platform.width && this.x > game.platform.x) {
                     if (this.sticks) {
                         this.onPlatform = true;
                         Ball.deltaPlatform = Math.abs(game.platform.x - this.x);
@@ -595,14 +590,14 @@ class Ball extends Drawable {
                             this.dx = delta * 1.5;
                             break;
                     }
-                } else if (this.x + this.radius > game.platform.x && this.x - this.radius < game.platform.x + Platform.width) {
+                } else if (this.x + Ball.radius > game.platform.x && this.x - Ball.radius < game.platform.x + game.platform.width) {
                     this.dx = -this.dx;
                 }
             }
-            if (this.x + this.dx * delta > window.innerWidth - this.radius || this.x + this.dx * delta < this.radius) {
+            if (this.x + this.dx * delta > window.innerWidth - Ball.radius || this.x + this.dx * delta < Ball.radius) {
                 this.dx = -this.dx;
             }
-            if (this.y > window.innerHeight + 50 || this.y < this.radius) {
+            if (this.y > window.innerHeight + 50 || this.y < Ball.radius) {
                 this.dy = -this.dy;
             }
             this.x += this.dx * delta;
@@ -663,8 +658,6 @@ class Game {
         this.ball = new Ball(0, 0, 10, this.timeDelta);
         this.paused = true;
         this.bonuses = [];
-        this.appliedBonus;
-        this.newBonus;
     }
 
     init() {
@@ -711,13 +704,13 @@ class Game {
             for (let c = 0; c < this.config.brickColumns; c++) {
                 let currentBrick = this.bricks[r][c];
                 if (currentBrick.hitsLeft > 0) {
-                    if (this.ball.y + this.ball.radius > currentBrick.y
-                        && this.ball.y - this.ball.radius < currentBrick.y + Brick.height) {
-                        if (this.ball.x + this.ball.radius > currentBrick.x
-                            && this.ball.x - this.ball.radius < currentBrick.x + Brick.width) {
-                            if (this.ball.y + this.ball.radius + this.ball.dy > currentBrick.y + Brick.height
-                                && (this.ball.x + this.ball.radius >= currentBrick.x + Brick.width
-                                    || this.ball.x - this.ball.radius <= currentBrick.x)) {
+                    if (this.ball.y + Ball.radius > currentBrick.y
+                        && this.ball.y - Ball.radius < currentBrick.y + Brick.height) {
+                        if (this.ball.x + Ball.radius > currentBrick.x
+                            && this.ball.x - Ball.radius < currentBrick.x + Brick.width) {
+                            if (this.ball.y + Ball.radius + this.ball.dy > currentBrick.y + Brick.height
+                                && (this.ball.x + Ball.radius >= currentBrick.x + Brick.width
+                                    || this.ball.x - Ball.radius <= currentBrick.x)) {
                                 this.ball.dx = -this.ball.dx;
                             } else {
                                 this.ball.dy = -this.ball.dy;
@@ -827,7 +820,8 @@ class UI {
     constructor() {
         UI.control = {
             KEYBOARD: 'keyboard',
-            MOUSE: 'mouse'
+            MOUSE: 'mouse',
+            TOUCH: 'touch'
         };
         this.canvas = document.getElementById("canvas");
         this.context = this.canvas.getContext('2d');
@@ -906,15 +900,18 @@ class UI {
         Brick.height = Math.round((window.innerHeight / game.config.brickRows) / 5);
         Bonus.width = Math.round(Brick.width / 2);
         Bonus.height = Math.round(Brick.height / 2);
-        Platform.width = window.innerWidth * game.config.platformWidthMultiplier;
+        Platform.regularWidth = window.innerWidth * game.config.platformWidthMultiplier;
+        Platform.expendedWidth = Platform.regularWidth * 1.5;
         Platform.height = Math.round(window.innerHeight * 0.03);
         ProgressBar.width = window.innerWidth;
         ProgressBar.height = Math.round(window.innerHeight * 0.0075);
+        Ball.radius = ((window.innerWidth + window.innerHeight) / 2) * 0.015;
         Brick.topMargin = Math.round(window.innerHeight * 0.1);
         Brick.margin = 2;
         if (!game.paused) {
             game.platform.x -= resolutionDeltaWidth;
             game.platform.y -= resolutionDeltaHeight;
+            game.platform.width = game.platform.expanded ? Platform.expendedWidth : Platform.regularWidth;
             game.ball.x -= resolutionDeltaWidth;
             game.ball.y -= resolutionDeltaHeight;
             if (game.platform.x < 0) {
