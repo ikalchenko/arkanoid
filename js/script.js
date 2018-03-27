@@ -207,7 +207,6 @@ class Player {
 
     update() {
         this.timeInGame += this.timer.getSecond();
-        console.log(this.timeInGame);
     }
 }
 
@@ -507,8 +506,6 @@ class Bonus extends Drawable {
                 game.ball.y *= 2;
                 break;
         }
-        game.progressBar = undefined;
-        game.bonusTimer = undefined;
     }
 
     apply() {
@@ -889,19 +886,6 @@ class Game {
                             this.appliedBonus = this.newBonus;
                         }
                     }
-                    if (this.bonuses[current] !== undefined
-                        && this.bonuses[current].requiredTimer === false
-                        && this.bonuses[current].applied) {
-                        if (this.appliedBonus === undefined) {
-                            this.appliedBonus = Object.create(this.bonuses[current]);
-                        } else {
-                            this.newBonus = Object.create(this.bonuses[current]);
-                        }
-                        if (this.newBonus !== undefined && this.newBonus.type !== this.appliedBonus.type) {
-                            this.appliedBonus.cancel();
-                            this.appliedBonus = this.newBonus;
-                        }
-                    }
                 }
             }
             if (this.bonusTimer !== undefined && !this.bonusTimer.stopped) {
@@ -1232,7 +1216,11 @@ class UI {
         }
         let counter = 1;
         for (let i in sortedNames) {
-            leaderboardHTML += '<tr><td>' + counter + '</td><td>' + sortedNames[i] + '</td><td>' + sortedRecords[i] + '</td><td>' + Timer.getMinutesAndSeconds(sortedTimesInGame[i]) + '</td></tr>';
+            leaderboardHTML += '<tr><td>' + counter
+                            + '</td><td>' + sortedNames[i]
+                            + '</td><td>' + sortedRecords[i]
+                            + '</td><td>' + Timer.getMinutesAndSeconds(sortedTimesInGame[i])
+                            + '</td></tr>';
             if (counter++ > 4) {
                 break;
             }
