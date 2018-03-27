@@ -107,12 +107,12 @@ canvas {
 	padding: 5px 5px;
 	margin: 5px;
 	font-family: Pixel, sans-serif;
-	font-size: 25px;
+	font-size: 20pt;
 	width: 80%;
 }
 
 #userName:focus {
-	margin: 0;
+	margin: 2px;
 	border: 5px solid #000;
 }
 
@@ -141,10 +141,7 @@ canvas {
 .menu-button:active {
 	box-shadow: 10px 10px 0 -200px rgba(0,0,0,0.75);
 	background-color: #777;
-	margin-top: 25px;
-	margin-bottom: 15px;
-	margin-left: 10px;
-	margin-right: -5px;
+	margin: 25px -5px 15px 10px;
 }
 
 #startGameButton {
@@ -222,6 +219,10 @@ input[type="radio"]:checked + label, input[type="checkbox"]:checked + label {
 	height: 60%;
 }
 
+#winBox .menu-button, #loseBox .menu-button, #nextLevelBox .menu-button {
+	margin: 0 10px;
+}
+
 @media only screen and (max-width: 800px) {
 	body {
 		font-size: 16pt;
@@ -262,5 +263,9 @@ input[type="radio"]:checked + label, input[type="checkbox"]:checked + label {
 		margin-left: 0;
 	}
 
+
+	#userName {
+		font-size: 16pt;
+	}
 
 }

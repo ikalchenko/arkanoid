@@ -207,6 +207,9 @@ class Player {
 
     update() {
         this.timeInGame += this.timer.getSecond();
+        if (game.ball.lost) {
+            this.life--;
+        }
     }
 }
 
@@ -633,6 +636,7 @@ class Ball extends Drawable {
         super(x, y, delta, -delta, color === undefined ? Ball.getRandomColor() : color);
         Ball.radius = ((window.innerWidth + window.innerHeight) / 2) * 0.015;
         this.onPlatform = true;
+        this.lost = false;
         this.sticks = false;
         this.canSlowDown = false;
         this.slowedDown = false;
@@ -666,6 +670,7 @@ class Ball extends Drawable {
             }
         }
         if (this.onPlatform) {
+            this.lost = false;
             if (this.sticks) {
                 this.x = game.platform.x + Ball.deltaPlatform;
                 this.y = game.platform.y - Ball.radius;
@@ -712,8 +717,12 @@ class Ball extends Drawable {
             if (this.x + this.dx * delta > window.innerWidth - Ball.radius || this.x + this.dx * delta < Ball.radius) {
                 this.dx = -this.dx;
             }
-            if (this.y > window.innerHeight + 50 || this.y < Ball.radius) {
+            if (this.y < Ball.radius) {
                 this.dy = -this.dy;
+            }
+            if (this.y > window.innerHeight + 50) {
+                this.lost = true;
+                this.onPlatform = true;
             }
             this.x += this.dx * delta;
             this.y += this.dy * delta;
@@ -773,12 +782,16 @@ class Game {
         this.ball = new Ball(0, 0, 10, this.timeDelta);
         this.paused = true;
         this.bonuses = [];
+        this.lose = false;
+        this.win = false;
     }
 
     init() {
         this.config = new Config();
         this.ball = new Ball(500, 500, 10, this.timeDelta);
         this.paused = true;
+        this.win = false;
+        this.lose = false;
         this.progressBar = undefined;
         this.bonuses = [];
     }
@@ -856,13 +869,23 @@ class Game {
     }
 
     update(delta) {
-        if (!this.paused) {
+        if (!this.paused && !this.lose && !this.win) {
             this.ball.update(delta);
             this.platform.update();
+            let counter = 0;
             for (let brickRow of this.bricks) {
                 for (let brick of brickRow) {
                     brick.update();
+                    if (brick.hitsLeft <= 0) {
+                        counter++;
+                    }
                 }
+            }
+            if (counter === this.config.brickRows * this.config.brickColumns) {
+                this.win = true;
+                cancelAnimationFrame(this.requestID);
+                ui.showBox('win');
+                this.init();
             }
             for (let current in this.bonuses) {
                 if (this.bonuses[current] !== undefined) {
@@ -898,6 +921,12 @@ class Game {
                 Brick.updateInfinity();
             }
             this.collisionDetection();
+            if (this.player.life <= 0) {
+                this.lose = true;
+                cancelAnimationFrame(this.requestID);
+                ui.showBox('lose');
+                this.init();
+            }
             this.player.update();
             ui.updateGameStat();
         }
@@ -942,7 +971,7 @@ class UI {
         };
         this.canvas = document.getElementById("canvas");
         this.context = this.canvas.getContext('2d');
-        this.startGameBtn = document.getElementById('startGameButton');
+        this.startGameButton = document.getElementById('startGameButton');
         this.menu = document.getElementById('menu');
         this.fullScreenButton = document.getElementById('fullScreenButton');
         this.leaderboardButton = document.getElementById('leaderboardButton');
@@ -966,9 +995,24 @@ class UI {
         this.changeUserButton = document.getElementById('changeUserButton');
         this.pauseButton = document.getElementById('pauseButton');
         this.pauseBox = document.getElementById('pauseBox');
+        this.winBox = document.getElementById('winBox');
+        this.loseBox = document.getElementById('loseBox');
+        this.nextLevelBox = document.getElementById('nextLevelBox');
         this.resumeButton = document.getElementById('resumeButton');
         this.backToMenuButton = document.getElementById('backToMenuButton');
         this.leaderboardTable = document.getElementById('leaderboardTable');
+        this.winBackToMenuButton = document.getElementById('winBackToMenuButton');
+        this.loseBackToMenuButton = document.getElementById('loseBackToMenuButton');
+        this.nextLevelBackToMenuButton = document.getElementById('nextLevelBackToMenuButton');
+        this.winRestartButton = document.getElementById('winRestartButton');
+        this.loseRestartButton = document.getElementById('loseRestartButton');
+        this.nextLevelRestartButton = document.getElementById('nextLevelRestartButton');
+        this.loseScoreField = document.getElementById('loseScoreField');
+        this.loseLevelField = document.getElementById('loseLevelField');
+        this.winScoreField = document.getElementById('winScoreField');
+        this.winLevelField = document.getElementById('winLevelField');
+        this.completeLevelScoreField = document.getElementById('completeLevelScoreField');
+        this.completeLevelField = document.getElementById('completeLevelField');
         this.rightPressed = false;
         this.leftPressed = false;
         this.gameNameField.innerHTML = game.name;
@@ -1113,11 +1157,23 @@ class UI {
                 this.menu.style.display = 'flex';
                 this.boxWrapper.style.display = 'none';
                 break;
+            case 'win':
+                this.winScoreField.innerHTML = Score.getScore(game.player);
+                this.winLevelField.innerHTML = game.config.level;
+                this.winBox.style.display = 'flex';
+                this.boxWrapper.style.display = 'block';
+                break;
+            case 'lose':
+                this.loseScoreField.innerHTML = Score.getScore(game.player);
+                this.loseLevelField.innerHTML = game.config.level;
+                this.loseBox.style.display = 'flex';
+                this.boxWrapper.style.display = 'block';
+                break;
         }
     }
 
     start() {
-        UI.hideBoxes(this.menu);
+        UI.hideBoxes(this.menu, this.winBox, this.loseBox, this.nextLevelBox, this.boxWrapper);
         this.showGameStat();
         game.setup();
         if (game.config.control === UI.control.MOUSE) {
@@ -1167,7 +1223,7 @@ class UI {
     }
 
     stop() {
-        UI.hideBoxes(this.pauseBox, this.gameStat, this.boxWrapper);
+        UI.hideBoxes(this.pauseBox, this.winBox, this.loseBox, this.nextLevelBox,  this.gameStat, this.boxWrapper);
         this.showBox(this.backToMenuButton);
         game.stop();
     }
@@ -1230,7 +1286,7 @@ class UI {
     }
 }
 
-let game = new Game('FAILOID', '0.3.2');
+let game = new Game('FAILOID', '0.3.3 (alpha)');
 let ui = new UI();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1248,7 +1304,13 @@ ui.canvas.addEventListener('touchstart', (event) => ui.controlHandler(event));
 ui.canvas.addEventListener('touchmove', (event) => ui.controlHandler(event));
 ui.canvas.addEventListener('touchend', (event) => ui.controlHandler(event));
 ui.submitNameButton.addEventListener('click', () => ui.submitName());
-ui.startGameBtn.addEventListener('click', () => ui.start());
+ui.winBackToMenuButton.addEventListener('click', () => ui.stop());
+ui.loseBackToMenuButton.addEventListener('click', () => ui.stop());
+ui.nextLevelBackToMenuButton.addEventListener('click', () => ui.stop());
+ui.winRestartButton.addEventListener('click', () => ui.start());
+ui.loseRestartButton.addEventListener('click', () => ui.start());
+ui.nextLevelRestartButton.addEventListener('click', () => ui.start());
+ui.startGameButton.addEventListener('click', () => ui.start());
 ui.leaderboardButton.addEventListener('click', () => ui.leaderboard());
 ui.infoButton.addEventListener('click', () => ui.showBox(ui.infoButton));
 ui.fullScreenButton.addEventListener('click', UI.switchFullScreen);

@@ -38,18 +38,19 @@
 			</table>
 		</div>
 		<div id="winBox" class="dialog-box hidden">you win!1!!
-			<div class="winScore">with score:&#160;<div id="winScoreField">0</div></div>
-			<div class="winLevel">and complete&#160;<div id="winLevelField">1</div><div>levels.</div></div>
-			<div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div>
+			<div class="winScore flex">with score:&#160;<div id="winScoreField">0</div></div>
+			<div class="winLevel flex">and complete&#160;<div id="winLevelField">1</div><div>&#160;level(s).</div></div>
+			<div class="flex"><div id="winBackToMenuButton" class="menu-button">back to menu</div><div id="winRestartButton" class="menu-button"><i class="fas fa-redo-alt"></i></div></div>
 		</div>
 		<div id="loseBox" class="dialog-box hidden">you lose((99(
-			<div class="loseScoreField">with score:&#160;<div id="loseScoreField">0</div></div>
-			<div class="loseLevelField">at level:&#160;<div id="loseLevelField">1</div></div>
-			<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
+			<div class="loseScoreField flex">with score:&#160;<div id="loseScoreField">0</div></div>
+			<div class="loseLevelField flex">at level:&#160;<div id="loseLevelField">1</div></div>
+			<div class="flex"><div id="loseBackToMenuButton" class="menu-button">back to menu</div><div id="loseRestartButton" class="menu-button"><i class="fas fa-redo-alt"></i></div></div>
 		</div>
-		<div id="nextLevelBox" class="dialog-box hidden">you complete&#160;<div class="completeLevelField">1</div>
-			<div class="completeLevelScore">with score:&#160;<div id="completeLevelScoreField"></div></div>
-			<div class="menu-buttons"><div class="menu-button">back to menu</div><div class="menu-button"><i class="fas fa-redo-alt"></i></div></div><!--<div id="closeWinBoxButton">x</div>-->
+		<div id="nextLevelBox" class="dialog-box hidden">
+			<div class="flex">you complete&#160;<div class="completeLevelField">1</div>&#160;level</div>
+			<div class="completeLevelScore flex">with score:&#160;<div id="completeLevelScoreField">1</div></div>
+			<div class="flex"><div id="nextLevelBackToMenuButton" class="menu-button">back to menu</div><div id="nextLevelRestartButton" class="menu-button"><i class="fas fa-redo-alt"></i></div></div>
 		</div>
 		<div id="infoBox" class="dialog-box hidden">info:
 			<div id="closeInfoButton" class="close-button">x</div>
