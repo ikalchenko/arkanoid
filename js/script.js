@@ -321,7 +321,7 @@ class Brick extends Drawable {
         this.column = column;
         this.hitsLeft = hitsLeft;
         this.points = this.hitsLeft * 10;
-        this.haveBonus = Bonus.getRandomBonusType();// Bonus.getBonus();
+        this.haveBonus = Bonus.getBonus();
         this.color = this.setBrickColor();
         this.destroyed = false;
     }
