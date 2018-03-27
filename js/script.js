@@ -34,6 +34,92 @@ class Score {
         };
     }
 
+    static getHighscore(player) {
+        if (game.config.infinity) {
+            switch (game.config.difficulty) {
+                case Config.difficulties.EASY:
+                    return  player.score.highscore.infinity.easy;
+                case Config.difficulties.NORMAL:
+                    return  player.score.highscore.infinity.normal;
+                case Config.difficulties.HARD:
+                    return  player.score.highscore.infinity.hard;
+                case Config.difficulties.IMPOSSIBLE:
+                    return  player.score.highscore.infinity.impossible;
+            }
+        } else {
+            switch (game.config.difficulty) {
+                case Config.difficulties.EASY:
+                    return  player.score.highscore.regular.easy;
+                case Config.difficulties.NORMAL:
+                    return  player.score.highscore.regular.normal;
+                case Config.difficulties.HARD:
+                    return  player.score.highscore.regular.hard;
+                case Config.difficulties.IMPOSSIBLE:
+                    return  player.score.highscore.regular.impossible;
+            }
+        }
+    }
+    
+    static getScore(player) {
+        if (game.config.infinity) {
+            switch (game.config.difficulty) {
+                case Config.difficulties.EASY:
+                    return  player.score.currentScore.infinity.easy;
+                case Config.difficulties.NORMAL:
+                    return  player.score.currentScore.infinity.normal;
+                case Config.difficulties.HARD:
+                    return  player.score.currentScore.infinity.hard;
+                case Config.difficulties.IMPOSSIBLE:
+                    return  player.score.currentScore.infinity.impossible;
+            }
+        } else {
+            switch (game.config.difficulty) {
+                case Config.difficulties.EASY:
+                    return  player.score.currentScore.regular.easy;
+                case Config.difficulties.NORMAL:
+                    return  player.score.currentScore.regular.normal;
+                case Config.difficulties.HARD:
+                    return  player.score.currentScore.regular.hard;
+                case Config.difficulties.IMPOSSIBLE:
+                    return  player.score.currentScore.regular.impossible;
+            }
+        }
+    }
+
+    doubleScore() {
+        if (game.config.infinity) {
+            switch (game.config.difficulty) {
+                case Config.difficulties.EASY:
+                    this.currentScore.infinity.easy *= 2;
+                    break;
+                case Config.difficulties.NORMAL:
+                    this.currentScore.infinity.normal *= 2;
+                    break;
+                case Config.difficulties.HARD:
+                    this.currentScore.infinity.hard *= 2;
+                    break;
+                case Config.difficulties.IMPOSSIBLE:
+                    this.currentScore.infinity.impossible *= 2;
+                    break;
+            }
+        } else {
+            switch (game.config.difficulty) {
+                case Config.difficulties.EASY:
+                    this.currentScore.regular.easy *= 2;
+                    break;
+                case Config.difficulties.NORMAL:
+                    this.currentScore.regular.normal *= 2;
+                    break;
+                case Config.difficulties.HARD:
+                    this.currentScore.regular.hard *= 2;
+                    break;
+                case Config.difficulties.IMPOSSIBLE:
+                    this.currentScore.regular.impossible *= 2;
+                    break;
+            }
+        }
+    }
+
     update(points, config) {
         if (config.infinity) {
             switch (config.difficulty) {
@@ -109,12 +195,19 @@ class Player {
             this.timeInGame = storedPlayer.timeInGame;
             this.availableLevel = storedPlayer.availableLevel;
             this.score = new Score(storedPlayer.score);
+            this.timer = new Timer();
         }
+
     }
 
     serialize() {
+        this.life = null;
         localStorage.setItem(this.name, JSON.stringify(this));
+    }
 
+    update() {
+        this.timeInGame += this.timer.getSecond();
+        console.log(this.timeInGame);
     }
 }
 
@@ -136,10 +229,32 @@ class Timer {
             this.stopped = true;
         }
     }
+
+    getSecond() {
+        if (Date.now() - this.timestamp >= 1000) {
+            this.timestamp = Date.now();
+            return 1;
+        } else return 0;
+    }
+    static getMinutesAndSeconds(sec) {
+        let mins = Math.trunc(sec / 60);
+        let secs = Math.round(sec % 60);
+        if (secs / 10 < 1) {
+            secs = '0' + secs;
+        }
+        return mins + ':' + secs;
+
+    }
 }
 
 class Config {
     constructor() {
+        Config.difficulties = {
+            EASY: 'easy',
+            NORMAL: 'normal',
+            HARD: 'hard',
+            IMPOSSIBLE: 'impossible'
+        };
         this.level = 1;
     }
 
@@ -377,7 +492,7 @@ class Bonus extends Drawable {
             case Bonus.types.EXPAND_PLATFORM:
                 game.platform.canExpend = false;
                 this.applied = false;
-                Platform.width = Platform.regularWidth;
+                game.platform.width = Platform.regularWidth;
                 break;
             case Bonus.types.STICK_BALL:
                 game.ball.sticks = false;
@@ -388,9 +503,12 @@ class Bonus extends Drawable {
                 this.applied = false;
                 game.ball.canSlowDown = false;
                 game.ball.slowedDown = false;
+                game.ball.x *= 2;
+                game.ball.y *= 2;
                 break;
         }
-
+        game.progressBar = undefined;
+        game.bonusTimer = undefined;
     }
 
     apply() {
@@ -400,7 +518,7 @@ class Bonus extends Drawable {
                 this.applied = true;
                 break;
             case Bonus.types.DOUBLE_SCORE:
-                //game.player.score.currentScore *= 2;
+                game.player.score.doubleScore();
                 this.applied = true;
                 break;
             case Bonus.types.EXPAND_PLATFORM:
@@ -505,9 +623,9 @@ class Platform extends Drawable {
             this.width = Platform.expendedWidth;
             this.expanded = true;
         }
-        if (this.expanded && game.bonusTimer.stopped) {
+        if (game.bonusTimer !== undefined && this.expanded && game.bonusTimer.stopped) {
             this.width = Platform.regularWidth;
-            this.x += Math.round(Platform.width * 0.5 / 2);
+            this.x += Math.round(this.width * 0.5 / 2);
             Bonus.resetBonuses();
         }
     }
@@ -671,6 +789,7 @@ class Game {
     setup() {
         this.config.readPlayerConfig();
         this.config.setXMLConfig(this.ball);
+        this.player.life = this.config.playerLife;
     }
 
     start() {
@@ -678,7 +797,7 @@ class Game {
         new Bonus();
         this.bricks = Brick.createBricks(this.config.brickRows, this.config.brickColumns, this.config.level, this.config.infinity);
         this.platform = new Platform((window.innerWidth / 2 - window.innerWidth * this.config.platformWidthMultiplier / 2),
-            window.innerHeight * 0.5,
+            Config.mobile ? window.innerHeight * 0.7 : window.innerHeight - 40,
             '#006e91',
             this.config.platformStep);
         UI.adapt();
@@ -770,6 +889,19 @@ class Game {
                             this.appliedBonus = this.newBonus;
                         }
                     }
+                    if (this.bonuses[current] !== undefined
+                        && this.bonuses[current].requiredTimer === false
+                        && this.bonuses[current].applied) {
+                        if (this.appliedBonus === undefined) {
+                            this.appliedBonus = Object.create(this.bonuses[current]);
+                        } else {
+                            this.newBonus = Object.create(this.bonuses[current]);
+                        }
+                        if (this.newBonus !== undefined && this.newBonus.type !== this.appliedBonus.type) {
+                            this.appliedBonus.cancel();
+                            this.appliedBonus = this.newBonus;
+                        }
+                    }
                 }
             }
             if (this.bonusTimer !== undefined && !this.bonusTimer.stopped) {
@@ -782,6 +914,7 @@ class Game {
                 Brick.updateInfinity();
             }
             this.collisionDetection();
+            this.player.update();
             ui.updateGameStat();
         }
     }
@@ -851,6 +984,7 @@ class UI {
         this.pauseBox = document.getElementById('pauseBox');
         this.resumeButton = document.getElementById('resumeButton');
         this.backToMenuButton = document.getElementById('backToMenuButton');
+        this.leaderboardTable = document.getElementById('leaderboardTable');
         this.rightPressed = false;
         this.leftPressed = false;
         this.gameNameField.innerHTML = game.name;
@@ -886,8 +1020,8 @@ class UI {
     }
 
     updateGameStat() {
-        this.highscoreField.innerText = 'highscore: ' + game.player.score.highscore;
-        this.scoreField.innerText = 'score: ' + game.player.score.currentScore;
+        this.highscoreField.innerText = 'highscore: ' + Score.getHighscore(game.player);
+        this.scoreField.innerText = 'score: ' + Score.getScore(game.player);
         this.lifeField.innerText = 'x ' + game.player.life;
     }
 
@@ -980,10 +1114,10 @@ class UI {
                 this.greeting.innerHTML = 'smb';
                 this.userNameInput.value = '';
                 this.nameForm.style.display = 'flex';
-                //removing player
+                UI.deleteFromLS(game.player);
                 break;
             case this.changeUserButton:
-                //save last user to local storage
+                game.player.serialize();
                 this.greeting.innerHTML = 'smb';
                 this.userNameInput.value = '';
                 this.nameForm.style.display = 'flex';
@@ -1013,7 +1147,7 @@ class UI {
     submitName() {
         let playerName;
         if (this.userNameInput.value === '') {
-            playerName = 'smb who h8s 2 enter a names';
+            playerName = 'smb';
         } else {
             playerName = this.userNameInput.value;
         }
@@ -1030,6 +1164,10 @@ class UI {
 
     static checkLocalStorage(playerName) {
         return localStorage.getItem(playerName);
+    }
+
+    static deleteFromLS(player) {
+        localStorage.removeItem(player.name);
     }
 
     pause() {
@@ -1057,8 +1195,50 @@ class UI {
     }
 
     leaderboard() {
+        game.player.serialize();
+        game.config.readPlayerConfig();
+        let leaderboardHTML = '';
+        let storedPlayers = [];
+        let names = [];
+        let sortedNames = [];
+        let records = [];
+        let sortedRecords = [];
+        let timesInGame = [];
+        let sortedTimesInGame = [];
+        for (let item in localStorage) {
+            if (typeof localStorage[item] === 'string') {
+                storedPlayers.push(localStorage[item]);
+            } else break;
+        }
+        for (let item in storedPlayers) {
+            storedPlayers[item] = JSON.parse(storedPlayers[item]);
+            names[item] = storedPlayers[item].name;
+            timesInGame[item] = storedPlayers[item].timeInGame;
+            records[item] = Score.getHighscore(storedPlayers[item]);
+        }
+        sortedRecords = records.slice(0);
+        sortedRecords.sort((a, b) => a - b);
+        sortedRecords.reverse();
+        console.log(records);
+        console.log(sortedRecords);
+        for (let record1 in sortedRecords) {
+            for (let record2 in records) {
+                if (sortedRecords[record1] === records[record2]) {
+                    sortedNames[record1] = names[record2];
+                    sortedTimesInGame[record1] = timesInGame[record2];
+                    break;
+                }
+            }
+        }
+        let counter = 1;
+        for (let i in sortedNames) {
+            leaderboardHTML += '<tr><td>' + counter + '</td><td>' + sortedNames[i] + '</td><td>' + sortedRecords[i] + '</td><td>' + Timer.getMinutesAndSeconds(sortedTimesInGame[i]) + '</td></tr>';
+            if (counter++ > 4) {
+                break;
+            }
+        }
+        ui.leaderboardTable.innerHTML = leaderboardHTML;
         this.showBox(this.leaderboardButton);
-
     }
 }
 

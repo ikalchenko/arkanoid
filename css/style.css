@@ -212,6 +212,16 @@ input[type="radio"]:checked + label, input[type="checkbox"]:checked + label {
 	cursor: pointer;
 }
 
+#leaderboardBox table {
+	width: 90%;
+}
+
+#leaderboardBox {
+	margin-left: -22.5%;
+	width: 95%;
+	height: 60%;
+}
+
 @media only screen and (max-width: 800px) {
 	body {
 		font-size: 16pt;
